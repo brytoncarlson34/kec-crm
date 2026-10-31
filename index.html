@@ -1,10 +1,10 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Kern Energy Check</title>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#14213D">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="KEC CRM">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" href="icons/icon-192.png">
 <style>
@@ -288,6 +288,44 @@ body:not(.chk):not(.cust) .foot{display:none!important}
 a.act,a.btn,a.opt,.acts a{text-decoration:none}
 .hdr{background:var(--bg)}
 
+/* ===== shared shell rules (same as Knockout Forms core.css) ===== */
+html,body{touch-action:manipulation;overscroll-behavior:none;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+input,select,textarea{font-size:max(16px,1em)}
+.view,.screen,.sheet{overscroll-behavior:contain}
+/* Today fits one screen: no scroll, no bounce. Lists show what fits, the rest is one tap away. */
+#v-today.fit{overflow:hidden;display:flex;flex-direction:column;padding-bottom:calc(88px + var(--safe-b))}
+#v-today.fit>*{flex:none}
+#v-today.fit .hdr{background:var(--bg)}
+#v-today.fit .tlist{flex:1 1 auto;min-height:0;overflow:hidden}
+#v-today.fit .stats{margin:8px 0}
+#v-today.fit .hot{margin:6px 0}
+#v-today.fit #tRun{margin-top:8px!important}
+#v-today .tlist .sec:first-child{margin-top:8px}
+#v-today .tlist .empty{padding:14px 10px}
+.tmore{display:block;width:100%;text-align:center;color:var(--blue);font-weight:600;font-size:14.5px;padding:8px 0}
+/* one tap connect (same pattern as Knockout Forms) */
+.steps{list-style:none;margin:0;padding:0;counter-reset:s}
+.steps li{position:relative;padding:4px 0 16px 46px;counter-increment:s;font-size:15.5px;color:var(--ink2)}
+.steps li:last-child{padding-bottom:4px}
+.steps li:before{content:counter(s);position:absolute;left:0;top:0;width:32px;height:32px;border-radius:11px;background:var(--orange);color:#fff;font-weight:800;display:grid;place-items:center}
+.steps li b{display:block;font-size:16.5px;margin-bottom:4px;color:var(--ink)}
+.tapc{margin:0 0 12px}
+/* short phones (iPhone SE): tighter top so the lists get room */
+@media (max-height:760px){#v-today.fit .hdr{padding-top:calc(10px + env(safe-area-inset-top));padding-bottom:6px}#v-today.fit .hdr h1{font-size:24px}
+ #v-today.fit .hot .tip{display:none}#v-today.fit .hot .n{font-size:20px;margin:4px 0 0}#v-today.fit .stat{padding:8px 10px}#v-today.fit .stat b{font-size:21px}#v-today.fit .stats{margin:6px 0}}
+/* Today stats row carries Run a check, so the bottom button is gone and the lists get the room */
+#v-today .stats{grid-template-columns:repeat(4,1fr);gap:8px}
+#v-today .stat{padding:10px 10px 8px}#v-today .stat b{font-size:22px}#v-today .stat span{font-size:12px;line-height:1.2;display:block}
+#v-today .stat.run{background:var(--navy);color:#fff;display:flex;flex-direction:column;justify-content:space-between;gap:4px}
+#v-today .stat.run svg{width:22px;height:22px;color:var(--orange2)}#v-today .stat.run span{color:#fff}
+.lead.ap .when{flex:none;width:48px;height:52px;border-radius:14px;background:#F6F7FA;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05}
+.lead.ap .when small{font-size:11px;font-weight:700;color:var(--orange);text-transform:uppercase}.lead.ap .when b{font-size:20px}
+.lead.ap .icb+.icb{margin-left:-4px}
+.lead.ap a.icb[aria-label=Directions]{background:#EEF3FF;color:var(--blue)}
+#v-today .tlist .card.came{padding:12px 14px;margin:8px 0}
+.cbk{display:flex;width:100%;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;font-size:15.5px;text-align:left;border-top:1px solid var(--line)}.cbk:first-of-type{border-top:0}.cbk b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cbk span{flex:none;font-size:12.5px;font-weight:700;color:var(--ink2)}
+#v-today .tlist .card.came.cbs{padding:4px 14px}
+
 </style></head><body>
 <div class="app" id="app">
 <section class="view" id="v-today"></section>
@@ -295,6 +333,7 @@ a.act,a.btn,a.opt,.acts a{text-decoration:none}
 <section class="view" id="v-pipe"></section>
 <section class="view" id="v-more"><div class="hdr"><div><h1>More</h1><div class="sub">Settings, sharing, backup</div></div><span id="morePill"></span></div>
 <div class="card"><div class="h"><b>Google Sheet connection</b></div><p class="meta2" id="conn" style="margin:6px 0 12px"></p>
+ <button class="btn soft full" id="c_tap" type="button" style="margin-bottom:14px">Tap to connect</button>
  <div class="fld"><label for="c_api">Sheet link (web app URL)</label><input id="c_api" placeholder="https://script.google.com/macros/s/.../exec" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
  <div class="fld"><label for="c_key">Team PIN</label><div class="pinrow"><input id="c_key" type="password" autocomplete="off" autocapitalize="off" spellcheck="false"><button class="btn soft" id="c_show" type="button" aria-label="Show PIN">Show</button></div></div>
  <div class="fld"><label for="c_rep">Your name (rep)</label><input id="c_rep" autocomplete="off"></div>
@@ -640,8 +679,18 @@ const apptTxt=s=>({wd:fmtU(s,{weekday:'short'}).toUpperCase(),day:wallDate(s).ge
 /* customer link: accept the Sheet link from ?api= when this phone has none (old links fall back to the built-in DEFAULT_API) */
 if(IS_CUST){try{const a=new URLSearchParams(location.search).get('api');const c=JSON.parse(localStorage.getItem(CFG)||'{}');if(a&&API_RE.test(a)&&!c.api){c.api=a;localStorage.setItem(CFG,JSON.stringify(c));}}catch(e){}}
 /* setup link (unchanged format: #setup=<base64 {api,key,rep}>) */
-let bootToast='';
-(function(){const h=location.hash.match(/^#setup=(.+)$/);if(h){try{const s=JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(h[1])))));localStorage.setItem(CFG,JSON.stringify(Object.assign(JSON.parse(localStorage.getItem(CFG)||'{}'),s)));bootToast='Sheet connected';}catch(e){bootToast='Setup link did not work';}history.replaceState(null,'',location.pathname+'#today');}})();
+/* shared shell rule: no pinch or double tap zoom (iOS ignores user-scalable=no; double tap is off via touch-action) */
+['gesturestart','gesturechange','gestureend'].forEach(t=>document.addEventListener(t,e=>e.preventDefault(),{passive:false}));
+document.addEventListener('touchmove',e=>{if(e.touches&&e.touches.length>1)e.preventDefault();},{passive:false});
+const STANDALONE=window.navigator.standalone===true||!!(window.matchMedia&&matchMedia('(display-mode: standalone)').matches);
+/* finds #setup=<base64 {api,key,rep}> in any text, even a link a mail app wrapped (…%23setup%3D…) */
+function parseSetupText(t){let s=String(t||''),m=null;for(let i=0;i<3&&!(m=/setup=([^&\s#"'<>]+)/.exec(s));i++){try{s=decodeURIComponent(s);}catch(e){break;}}if(!m)return null;
+ try{const o=JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(m[1]).replace(/-/g,'+').replace(/_/g,'/')))));return o&&(o.api||o.key)?o:null;}catch(e){return null;}}
+function applySetup(s){localStorage.setItem(CFG,JSON.stringify(Object.assign(JSON.parse(localStorage.getItem(CFG)||'{}'),s)));}
+let bootToast='',setupRaw='';
+(function(){if(!/^#setup=/.test(location.hash))return;const raw=location.href,s=parseSetupText(raw);
+ if(s){applySetup(s);bootToast='Sheet connected';if(!STANDALONE&&!IS_CUST)setupRaw=raw;}else bootToast='Setup link did not work';
+ history.replaceState(null,'',location.pathname+'#today');})();
 
 /* ===== toast with Undo ===== */
 let tT;function toast(m,undo){$('toastT').textContent=m;$('toastU').style.display=undo?'block':'none';$('toastU').onclick=()=>{$('toast').classList.remove('on');undo&&undo();};$('toast').classList.add('on');clearTimeout(tT);tT=setTimeout(()=>$('toast').classList.remove('on'),undo?5000:2600);}
@@ -830,21 +879,62 @@ function renderToday(){const L=ALL(),t=today(),h=Math.floor(ptNow().min/60);cons
  const todayA=L.filter(l=>l.appt&&l.appt.slice(0,10)===t&&!CLOSED.includes(l.stage)).sort((a,b)=>a.appt.localeCompare(b.appt));
  const upA=L.filter(l=>l.appt&&l.appt.slice(0,10)>t&&dayDiff(l.appt)<=7&&!CLOSED.includes(l.stage)).sort((a,b)=>a.appt.localeCompare(b.appt));
  const fu=L.filter(l=>l.stage!=='New'&&needsYou(l)&&!todayA.includes(l)).sort((a,b)=>dueDate(a).localeCompare(dueDate(b)));
- const late=L.filter(l=>dueCls(l)==='late').length,due=L.filter(l=>dueCls(l)==='due').length;const back=L.filter(cameBack);
+ const late=L.filter(l=>dueCls(l)==='late').length,due=L.filter(l=>dueCls(l)==='due').length;const backT=l=>Math.max(0,...timeline(l).filter(e=>e.type==='Check'&&e.t).map(e=>+new Date(String(e.t).replace(' ','T'))||0));const back=L.filter(cameBack).sort((a,b)=>backT(b)-backT(a));
  const hc=hot&&leadCheck(hot);
+ // the hot card already shows that lead with Call now, so the lists below skip it (one screen, no repeats)
+ const todayL=todayA.filter(l=>l!==hot),fuL=fu.filter(l=>l!==hot);
  $('v-today').innerHTML='<div class="hdr"><div><h1>'+hi+', '+esc(first(cfg().rep||'Bryton'))+'</h1><div class="sub">'+fmtU(t,{weekday:'long',month:'long',day:'numeric'})+'</div></div>'+pill()+'</div>'+
  (hot?'<div class="card hot"><div class="k"><i></i>NEW LEAD · <span class="timer" data-since="'+esc(hot.created)+'">'+relAgo(hot.created)+'</span></div><div class="n">'+esc(hot.name)+'</div>'+
   '<div class="m">'+[esc(hot.need),esc(city(hot.address)),hc&&hc.score?esc(hc.label)+' '+hc.score:''].filter(Boolean).join(' · ')+'</div>'+
-  (hot.appt?'<div class="m" style="margin-top:6px"><b>They picked '+esc(slotLbl(hot.appt))+'</b></div>':'<div class="m" style="margin-top:6px">Call in the first 5 minutes and you\'re way more likely to reach them.</div>')+
+  (hot.appt?'<div class="m" style="margin-top:6px"><b>They picked '+esc(slotLbl(hot.appt))+'</b></div>':'<div class="m tip" style="margin-top:6px">Call in the first 5 minutes and you\'re way more likely to reach them.</div>')+
   '<div class="row" style="margin-top:14px">'+(hot.phone?callA(hot,'btn pri tap" style="flex:1',I.phone+' Call now'):'')+'<button class="btn ghost tap" type="button" data-open="'+esc(hot.id)+'">Open</button></div></div>':'')+
- '<div class="stats"><button class="stat tap '+(late?'bad':'')+'" type="button" data-f="Needs you"><b>'+late+'</b><span>Late</span></button><button class="stat tap" type="button" data-f="Needs you"><b>'+due+'</b><span>Due today</span></button><button class="stat tap" type="button" data-f="Booked"><b>'+(todayA.length+upA.length)+'</b><span>Appts this week</span></button></div>'+
+ '<div class="stats"><button class="stat tap '+(late?'bad':'')+'" type="button" data-f="Needs you"><b>'+late+'</b><span>Late</span></button><button class="stat tap" type="button" data-f="Needs you"><b>'+due+'</b><span>Due today</span></button><button class="stat tap" type="button" data-f="Booked"><b>'+(todayA.length+upA.length)+'</b><span>Appts this week</span></button><button class="stat run tap" type="button" id="tRun">'+I.bolt+'<span>Run a check</span></button></div>'+
+ (!cfg().key?'<div class="card tapc"><b>Connect this phone to the Sheet</b><div class="meta2" style="margin:2px 0 10px">Copy your setup link, then tap below.</div><button class="btn pri full tap" type="button" id="tTap">'+(I.link||'')+' Tap to connect</button></div>':'')+
+ // list area: what matters most first. It shows what fits on one screen; the rest is one tap away (See all).
+ '<div class="tlist" id="tList">'+
+ (todayL.length?'<div class="sec">Today\'s appointments</div>'+todayL.map(l=>apptRow(l)).join(''):'')+
+ '<div class="sec"><span>Follow up today</span><a data-f="Needs you">See all</a></div>'+(fuL.length?fuL.map(leadRow).join(''):'<div class="empty"><div class="e">✅</div><b>All caught up</b>Nothing due. Go knock some doors.</div>')+
+ (back.length?'<div class="sec">Came back</div>'+(back.length===1?back.map(l=>'<div class="card came tap" data-open="'+esc(l.id)+'"><b>'+esc(l.name)+'</b> ran a new Energy Check<div class="meta2">Still marked '+esc(l.stage)+'. Worth a call?</div></div>').join(''):
+  // more than one: one card, one line each, so they all fit on Today
+  '<div class="card came cbs">'+back.map(l=>'<button type="button" class="cbk tap" data-open="'+esc(l.id)+'"><b>'+esc(l.name)+'</b><span>'+esc(l.stage)+'</span></button>').join('')+'</div>'):'')+
  (news.length>1?'<div class="sec"><span>New leads</span><a data-f="New">See all</a></div>'+news.slice(1,6).map(leadRow).join(''):'')+
- (todayA.length?'<div class="sec">Today\'s appointments</div>'+todayA.map(apptCard).join(''):'')+
- '<div class="sec"><span>Follow up today</span><a data-f="Needs you">See all</a></div>'+(fu.length?fu.map(leadRow).join(''):'<div class="empty"><div class="e">✅</div><b>All caught up</b>Nothing due. Go knock some doors.</div>')+
- (upA.length?'<div class="sec">Coming up</div>'+upA.map(apptCard).join(''):'')+
- (back.length?'<div class="sec">Came back</div>'+back.map(l=>'<div class="card came tap" data-open="'+esc(l.id)+'"><b>'+esc(l.name)+'</b> ran a new Energy Check<div class="meta2">Still marked '+esc(l.stage)+'. Worth a call?</div></div>').join(''):'')+
- '<button class="btn dark full" type="button" id="tRun" style="margin-top:18px">'+I.bolt+' Run an Energy Check</button>';
- const v=$('v-today');bindRows(v);v.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{filt=b.dataset.f;go('leads');});$('tRun').onclick=()=>go('new');bindPills();}
+ (upA.length?'<div class="sec">Coming up</div>'+upA.map(apptCard).join(''):'')+'</div>'+
+ '';
+ const v=$('v-today');v.classList.add('fit');fitToday();bindRows(v);v.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{filt=b.dataset.f;go('leads');});$('tRun').onclick=()=>go('new');
+ const tc=$('tTap');if(tc)tc.onclick=tapConnect;bindPills();}
+/* Today never scrolls. If the lists do not fit, show the first item of every section first (in priority order),
+   then fill the room left with the rest, in order. Whatever is left out is one tap away: "N more. See all leads". */
+function fitToday(){const L=$('tList');if(!L||!L.clientHeight)return;const over=()=>L.scrollHeight>L.clientHeight+1;if(!over())return;
+ const G=[];let cur=null;[...L.children].forEach(c=>{if(c.classList.contains('sec')){cur={h:c,rows:[]};G.push(cur);}else if(cur)cur.rows.push(c);});
+ const order=[];G.forEach(g=>{if(g.rows[0])order.push(g.rows[0]);});G.forEach(g=>g.rows.slice(1).forEach(r=>order.push(r)));
+ const isLead=r=>!r.classList.contains('empty'),total=order.filter(isLead).length,inc=new Set();
+ const tm=document.createElement('button');tm.type='button';tm.className='tmore';tm.dataset.f='All';
+ const lay=()=>{L.textContent='';G.forEach(g=>{const rs=g.rows.filter(r=>inc.has(r));if(rs.length){L.appendChild(g.h);rs.forEach(r=>L.appendChild(r));}});
+  const n=total-[...inc].filter(isLead).length;if(n){tm.textContent=n+' more. See all leads';L.appendChild(tm);}};
+ order.forEach(r=>{inc.add(r);lay();if(over())inc.delete(r);});lay();
+ while(over()&&inc.size){inc.delete(order.filter(r=>inc.has(r)).pop());lay();}}
+window.addEventListener('resize',()=>{if(view==='today'&&!IS_CUST)renderToday();});
+/* one tap connect: read the copied setup link, fill the Sheet card, then Save and test */
+async function tapConnect(){let t=null;try{t=await navigator.clipboard.readText();}catch(e){}
+ const s=parseSetupText(t);
+ if(!s){toast(t===null?'Your phone did not hand over the link. Paste it in More.':'No setup link was copied. Copy it, then try again.');go('more');setTimeout(()=>{const k=$('c_key');k&&k.focus();},300);return;}
+ const C=cfg();$('c_api').value=s.api||C.api;$('c_key').value=s.key||C.key;$('c_rep').value=s.rep||C.rep||'';$('c_save').click();}
+/* a browser tab opened a setup link: on iPhone the Home Screen app keeps its own storage, so walk them through it */
+function installSheet(){sheet('<h3>Put it on your Home Screen</h3><p class="hint">This browser is connected. Three steps for the Home Screen app.</p><ol class="steps">'+
+ '<li><b>Tap Copy</b>This copies your setup link.<button class="btn pri full tap" id="iCopy" type="button" style="margin-top:10px">Copy</button><input class="in" id="iLink" readonly style="display:none;margin-top:10px;width:100%;height:48px;border-radius:12px;border:1.5px solid var(--line);padding:0 12px"></li>'+
+ '<li><b>Tap Share, then Add to Home Screen</b>Share is at the bottom of Safari. On Android, tap the menu, then Install app.</li>'+
+ '<li><b>Open the app and tap Connect</b>Open KEC CRM from your Home Screen and tap Tap to connect. If it asks, tap Paste.</li></ol>'+
+ '<button class="btn soft full" id="iHere" type="button" style="margin-top:12px">Use it in this browser</button>',s=>{
+  s.querySelector('#iHere').onclick=closeSheet;
+  s.querySelector('#iCopy').onclick=async()=>{let ok=false;try{await navigator.clipboard.writeText(setupRaw);ok=true;}catch(e){}
+   const b=s.querySelector('#iCopy');if(ok){b.textContent='Copied';b.className='btn green full';toast('Copied. Now tap Share.');}else{const i=s.querySelector('#iLink');i.style.display='block';i.value=setupRaw;i.focus();i.select();}};});
+ try{const abs=u=>new URL(u,location.href).href,m={name:'KEC CRM',short_name:'KEC CRM',id:abs('./'),start_url:setupRaw,scope:abs('./'),display:'standalone',background_color:'#F4F5F8',theme_color:'#14213D',
+  icons:[{src:abs('icons/icon-192.png'),sizes:'192x192',type:'image/png'},{src:abs('icons/icon-512.png'),sizes:'512x512',type:'image/png'}]};
+  const l=document.querySelector('link[rel=manifest]');if(l)l.href='data:application/manifest+json,'+encodeURIComponent(JSON.stringify(m));}catch(e){}}
+/* Today: same appointment, row sized like a lead so more fits on one screen. Call and Directions stay one tap. */
+function apptRow(l){const a=apptTxt(l.appt);return'<div class="lead tap ap" data-open="'+esc(l.id)+'"><div class="when"><small>'+a.wd+'</small><b>'+a.day+'</b></div><div class="mid"><div class="nm">'+esc(l.name)+'</div>'+
+ '<div class="meta">'+[a.rel+' · '+a.time,esc(l.need)].filter(Boolean).join(' · ')+'</div><div class="meta">'+esc(l.address)+'</div></div>'+
+ (l.address?'<a class="icb tap" target="_blank" rel="noopener" aria-label="Directions" href="https://maps.apple.com/?daddr='+encodeURIComponent(l.address)+'">'+I.map+'</a>':'')+(l.phone?callA(l,'icb tap',I.phone):'')+'</div>';}
 function apptCard(l){const a=apptTxt(l.appt);return'<div class="card tap" data-open="'+esc(l.id)+'"><div class="appt"><div class="when"><small>'+a.wd+'</small><b>'+a.day+'</b></div><div style="flex:1;min-width:0"><b style="font-size:17px">'+esc(l.name)+'</b>'+
  '<div style="color:var(--ink2);font-size:14px">'+a.rel+' · '+a.time+' · '+esc(l.need)+'</div><div style="color:var(--ink2);font-size:14px">'+esc(l.address)+'</div></div></div>'+
  '<div class="row" style="margin-top:12px">'+(l.phone?callA(l,'btn green tap" style="flex:1',I.phone+' Call'):'')+(l.address?'<a class="btn soft tap" style="flex:1" target="_blank" rel="noopener" href="https://maps.apple.com/?daddr='+encodeURIComponent(l.address)+'">'+I.map+' Directions</a>':'')+'</div></div>';}
@@ -875,6 +965,7 @@ function custLink(){const a=cfg().api;return location.origin+location.pathname+'
 function renderMore(){$('morePill').innerHTML=pill();bindPills();const u=custLink();$('custLink').textContent=u;$('prevLink').href=u;status();}
 function fillCfg(){const C=cfg();$('c_api').value=C.api;$('c_key').value=C.key;$('c_rep').value=C.rep;}
 $('c_show').onclick=()=>{const k=$('c_key'),on=k.type==='password';k.type=on?'text':'password';$('c_show').textContent=on?'Hide':'Show';$('c_show').setAttribute('aria-label',on?'Hide PIN':'Show PIN');};
+$('c_tap').onclick=tapConnect;
 $('c_save').onclick=async()=>{const api=$('c_api').value.trim(),key=$('c_key').value.trim(),rep=$('c_rep').value.trim()||'Bryton';
  if(api&&!API_RE.test(api)){toast('That Sheet link does not look right');return;}
  localStorage.setItem(CFG,JSON.stringify(Object.assign(JSON.parse(localStorage.getItem(CFG)||'{}'),{api,key,rep})));$('c_key').type='password';$('c_show').textContent='Show';
@@ -946,5 +1037,6 @@ else{fillCfg();const h=(location.hash||'').replace('#','');go(['today','leads','
  setInterval(()=>{if(db().queue.length&&!syncing)sync();},30000);
  if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});}
 if(bootToast)toast(bootToast);
+if(setupRaw)setTimeout(installSheet,400);
 
 </script></body></html>
