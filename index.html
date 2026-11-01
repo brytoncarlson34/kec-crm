@@ -11,7 +11,7 @@
 if(navigator.standalone===true||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches))document.documentElement.className+=' sa';</script>
 <style>
 :root{--brand:#F06E0A;--brand-2:#FF8A2B;--brand-dark:#14213D;--brand-dark-2:#1E2C4F;--navy:var(--brand-dark);--navy2:var(--brand-dark-2);--blue:#1E50A0;--orange:var(--brand);--orange2:var(--brand-2);--bg:#F4F5F8;--vgap:0px;--card:#fff;--ink:#0F172A;--ink2:#475569;--ink3:#94A3B8;--line:#E6E8EE;--green:#16A34A;--red:#DC2626;--amber:#D97706;
---r:18px;--sh:0 1px 2px rgba(15,23,42,.06),0 4px 14px rgba(15,23,42,.06);--safe-t:max(env(safe-area-inset-top,0px),var(--safe-t-fb,0px));--safe-b:env(safe-area-inset-bottom,0px);--ease:cubic-bezier(.2,.8,.2,1)}
+--r:18px;--sh:0 1px 2px rgba(15,23,42,.06),0 4px 14px rgba(15,23,42,.06);--safe-t:max(env(safe-area-inset-top,0px),var(--safe-t-fb,0px));--safe-b:env(safe-area-inset-bottom,0px);--nav-lift:10px;--ease:cubic-bezier(.2,.8,.2,1)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:16px/1.4 -apple-system,"SF Pro Text",Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
 button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;padding:0}
@@ -21,10 +21,11 @@ input,textarea{font:inherit;color:inherit}
    Top bars pad by --safe-t (env(safe-area-inset-top), or a fallback when iOS 26.x reports 0 there).
    iOS 26 Home Screen apps size inset:0 / 100% as the screen minus the status bar while drawing from the top,
    which left a dead strip under the tab bar. 100lvh is the true screen in a Home Screen app. */
-html.sa{height:100lvh}
-html.sa body{height:100lvh}
-html.sa .app{bottom:auto;height:100lvh}
-.view{position:absolute;inset:0;overflow-y:auto;padding:0 16px calc(110px + var(--safe-b));opacity:0;pointer-events:none;transform:translateY(8px);transition:opacity .22s var(--ease),transform .22s var(--ease)}
+html.sa{height:var(--app-h,100lvh)}
+html.sa body{height:var(--app-h,100lvh)}
+html.sa .app{bottom:auto;height:var(--app-h,100lvh)}
+/* v1.0.1: core.js sets --app-h (the page height iOS really gives us) and --safe-t/--safe-b in px; see shell() */
+.view{position:absolute;inset:0;overflow-y:auto;padding:0 16px calc(110px + var(--nav-lift) + var(--safe-b));opacity:0;pointer-events:none;transform:translateY(8px);transition:opacity .22s var(--ease),transform .22s var(--ease)}
 .view.on{opacity:1;pointer-events:auto;transform:none}
 .hdr{display:flex;align-items:center;justify-content:space-between;padding:18px 0 10px;position:sticky;top:0;z-index:5;background:linear-gradient(var(--bg) 80%,rgba(244,245,248,0))}
 .hdr h1{font-size:30px;line-height:1.1;letter-spacing:-.02em;margin:0;font-weight:800}
@@ -87,7 +88,7 @@ html.sa .app{bottom:auto;height:100lvh}
 .chip.on{background:var(--navy);color:#fff}.chip.on b{background:rgba(255,255,255,.18);color:#fff}
 .empty{text-align:center;padding:48px 20px;color:var(--ink2)}.empty .e{font-size:44px}.empty b{display:block;color:var(--ink);font-size:18px;margin:6px 0 2px}
 /* tabbar */
-.tabs{position:absolute;left:0;right:0;bottom:0;z-index:20;display:grid;grid-template-columns:repeat(5,1fr);align-items:end;padding:8px 8px calc(10px + var(--safe-b));background:rgba(255,255,255,.88);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1px solid var(--line)}
+.tabs{position:absolute;left:0;right:0;bottom:0;z-index:20;display:grid;grid-template-columns:repeat(5,1fr);align-items:end;padding:8px 8px calc(10px + var(--nav-lift) + var(--safe-b));touch-action:none;-webkit-user-select:none;user-select:none;background:rgba(255,255,255,.88);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1px solid var(--line)}
 .tab{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:600;color:var(--ink3);height:50px;justify-content:center}
 .tab svg{width:25px;height:25px}.tab.on{color:var(--navy)}
 .tab .badge{position:absolute;margin:-26px 0 0 22px;background:var(--red);color:#fff;font-size:10px;font-weight:800;border-radius:99px;padding:1px 5px}
@@ -188,7 +189,7 @@ html.sa .app{bottom:auto;height:100lvh}
 .funnel button b{display:block;font-size:20px;color:var(--ink)}
 .funnel button.on{background:var(--navy);color:#cbd5e1}.funnel button.on b{color:#fff}
 /* toast */
-.toast{position:absolute;left:16px;right:16px;bottom:calc(96px + var(--safe-b));z-index:60;background:var(--ink);color:#fff;border-radius:16px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:15px;transform:translateY(20px);opacity:0;pointer-events:none;transition:all .25s var(--ease)}
+.toast{position:absolute;left:16px;right:16px;bottom:calc(96px + var(--nav-lift) + var(--safe-b));z-index:60;background:var(--ink);color:#fff;border-radius:16px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:15px;transform:translateY(20px);opacity:0;pointer-events:none;transition:all .25s var(--ease)}
 .toast.on{transform:none;opacity:1;pointer-events:auto}
 .toast button{color:var(--orange2);font-weight:800}
 .callov{position:absolute;inset:0;z-index:70;background:linear-gradient(#0B1324,#14213D);color:#fff;display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px}
@@ -302,7 +303,7 @@ html,body{touch-action:manipulation;overscroll-behavior:none;-webkit-text-size-a
 input,select,textarea{font-size:max(16px,1em)}
 .view,.screen,.sheet{overscroll-behavior:contain}
 /* Today fits one screen: no scroll, no bounce. Lists show what fits, the rest is one tap away. */
-#v-today.fit{overflow:hidden;display:flex;flex-direction:column;padding-bottom:calc(88px + var(--safe-b))}
+#v-today.fit{overflow:hidden;display:flex;flex-direction:column;padding-bottom:calc(88px + var(--nav-lift) + var(--safe-b))}
 #v-today.fit>*{flex:none}
 #v-today.fit .hdr{background:var(--bg)}
 #v-today.fit .tlist{flex:1 1 auto;min-height:0;overflow:hidden}
@@ -334,6 +335,9 @@ input,select,textarea{font-size:max(16px,1em)}
 #v-today .tlist .card.came{padding:12px 14px;margin:8px 0}
 .cbk{display:flex;width:100%;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;font-size:15.5px;text-align:left;border-top:1px solid var(--line)}.cbk:first-of-type{border-top:0}.cbk b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cbk span{flex:none;font-size:12.5px;font-weight:700;color:var(--ink2)}
 #v-today .tlist .card.came.cbs{padding:4px 14px}
+
+/* v1.0.1: the tab bar sits clear of the Home bar. Only the buttons take taps; the strip under them does nothing. */
+.tabs .tab,.tabs .plus{touch-action:manipulation}
 
 /* ===== forms pack (scoped) ===== */
 #v-x input,#v-x select,#v-x textarea{font-size:max(16px,1em)}
@@ -536,9 +540,9 @@ input,select,textarea{font-size:max(16px,1em)}
 #v-x{padding:0}
 #v-x.fit{overflow:hidden;display:flex;flex-direction:column}
 #v-x.fit>.hdr{flex:none;width:100%}
-#v-x.fit>main{flex:1;min-height:0;width:100%;display:flex;flex-direction:column;overflow:hidden;padding-bottom:calc(86px + var(--safe-b))}
-#v-x.fit.bare>main{padding-bottom:calc(92px + var(--safe-b))}
-#v-x.sub>main,#v-x.bare>main{padding-bottom:calc(120px + var(--safe-b))}
+#v-x.fit>main{flex:1;min-height:0;width:100%;display:flex;flex-direction:column;overflow:hidden;padding-bottom:calc(86px + var(--nav-lift) + var(--safe-b))}
+#v-x.fit.bare>main{padding-bottom:calc(92px + var(--nav-lift) + var(--safe-b))}
+#v-x.sub>main,#v-x.bare>main{padding-bottom:calc(120px + var(--nav-lift) + var(--safe-b))}
 body.xsub .tabs,body.xbare .tabs{display:none!important}
 #foot.on{display:block}
 #foot .in .btn{flex:1}
@@ -748,24 +752,39 @@ window.CORE = (function () {
   // double tap zoom is off through touch-action: manipulation in core.css
   /* fit(on): lock the page to one screen (home), or let it scroll (forms) */
   function fit(on) { document.documentElement.classList.toggle('fit', !!on); document.body.classList.toggle('fit', !!on); if (on) window.scrollTo(0, 0); }
-  /* shared shell rule: status bar + Home Screen app (see html.sa in core.css).
-     --safe-t-fb: iOS 26.x can report env(safe-area-inset-top) as 0 in a Home Screen app, which puts the
-     header under the clock. Then we use the known status bar height for the screen size.
-     --vgap: iOS 26 Home Screen apps can size the page as screen minus status bar; this is the missing strip. */
+  /* shared shell rule: status bar + Home Screen app (html.sa in the CSS). v1.0.1.
+     A Home Screen app with the "default" status bar style can be drawn two ways on iOS:
+      covered: the page runs under the status bar (innerHeight is the whole screen, or iOS reports a top inset).
+               Pad the top by env(safe-area-inset-top), or by the known status bar height when iOS reports 0 there.
+      below:   iOS puts the page BELOW the status bar (innerHeight is short of the screen and the top inset is 0).
+               Then the status bar is not ours to clear: top pad is 0 and the page is the screen minus the status bar.
+     v1.0 always added the status bar height when the inset read 0, so on a "below" phone the header sat a whole
+     status bar too low and the tab bar was pushed off the bottom into the Home bar (Bryton, iPhone 15 Pro Max, Nov 1).
+     --safe-t, --safe-b and --app-h are set here as px; MT_SHELL holds what was measured (More, tap the version line). */
+  function sbh() { const sh = Math.max(screen.width, screen.height); return sh >= 956 || sh === 874 ? 62 : sh >= 852 && sh !== 896 && sh !== 926 ? 59 : sh >= 812 ? 47 : 20; }
   function shell() {
-    const de = document.documentElement, sa = isStandalone();
+    const de = document.documentElement, sa = isStandalone(), st = de.style;
     de.classList.toggle('sa', sa);
-    if (!sa || !document.body) { de.style.removeProperty('--safe-t-fb'); de.style.removeProperty('--vgap'); return; }
+    ['--safe-t-fb', '--vgap', '--safe-t', '--safe-b', '--app-h'].forEach(k => st.removeProperty(k));
+    de.classList.remove('sa-below', 'sa-cover');
+    if (!sa || !document.body) { window.MT_SHELL = { sa: false }; return; }
     const p = document.createElement('div');
-    p.style.cssText = 'position:fixed;left:0;top:0;width:1px;visibility:hidden;pointer-events:none;box-sizing:border-box;height:100lvh;padding-top:env(safe-area-inset-top,0px)';
+    p.style.cssText = 'position:fixed;left:0;top:0;width:1px;visibility:hidden;pointer-events:none;box-sizing:border-box;height:100lvh;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)';
     document.body.appendChild(p);
-    const envT = parseFloat(getComputedStyle(p).paddingTop) || 0, lvh = p.getBoundingClientRect().height; p.remove();
-    const portrait = window.innerHeight >= window.innerWidth, ios = window.navigator.standalone === true;
-    let fb = 0;
-    if (ios && envT < 1 && portrait) { const sh = Math.max(screen.width, screen.height); fb = sh >= 956 || sh === 874 ? 62 : sh >= 852 && sh !== 896 && sh !== 926 ? 59 : sh >= 812 ? 47 : 20; }
-    if (fb) de.style.setProperty('--safe-t-fb', fb + 'px'); else de.style.removeProperty('--safe-t-fb');
-    const gap = Math.round(lvh - window.innerHeight);
-    if (gap > 0 && gap <= 80) de.style.setProperty('--vgap', gap + 'px'); else de.style.removeProperty('--vgap');
+    const cs = getComputedStyle(p), envT = parseFloat(cs.paddingTop) || 0, envB = parseFloat(cs.paddingBottom) || 0, lvh = p.getBoundingClientRect().height; p.remove();
+    const ih = window.innerHeight, iw = window.innerWidth, portrait = ih >= iw, ios = window.navigator.standalone === true;
+    const sh = portrait ? Math.max(screen.width, screen.height) : Math.min(screen.width, screen.height), bar = sbh(), notch = Math.max(screen.width, screen.height) >= 812;
+    let mode = 'env', top = envT, h = 0;
+    if (ios && portrait) {
+      if (envT >= 1 || ih >= sh - 2) { mode = 'cover'; top = envT >= 1 ? envT : bar; h = sh; }
+      else { mode = 'below'; top = 0; h = Math.max(ih, sh - bar); }
+    }
+    // the Home bar strip at the bottom: iOS can report 0 here too on a Face ID phone
+    const bot = Math.max(envB, ios && portrait && notch ? 34 : 0);
+    st.setProperty('--safe-t', top + 'px'); st.setProperty('--safe-b', bot + 'px');
+    if (h) st.setProperty('--app-h', h + 'px');
+    if (mode !== 'env') de.classList.add(mode === 'below' ? 'sa-below' : 'sa-cover');
+    window.MT_SHELL = { sa: true, ios, mode, envT, envB, ih, iw, sh, lvh: Math.round(lvh), top, bot, h };
   }
   shell();
   ['resize', 'orientationchange', 'pageshow'].forEach(t => window.addEventListener(t, () => setTimeout(shell, 60)));
@@ -2311,9 +2330,11 @@ if(setupRaw)setTimeout(installSheet,400);}
       (old.kec || old.kf ? '<button class="linkbtn" id="bringOld" type="button">Bring over data from the old apps on this phone</button>' : '') + '</div>' +
       '<div class="sec">Support</div><div class="card donate"><b>Like the app?</b><p class="meta2" style="margin:6px 0 10px">It is free. A way to chip in is coming soon.</p>' +
       (D ? '<a class="btn pri full" id="donateBtn" href="' + esc(D) + '" target="_blank" rel="noopener">Donate</a>' : '<button class="btn pri full" id="donateBtn" type="button" disabled>Donate (coming soon)</button>') + '</div>' +
-      '<p class="ver">' + esc(L.name) + ' CRM v1.0</p>';
+      '<p class="ver" id="verLine">' + esc(L.name) + ' CRM v1.0.1</p><p class="ver" id="fitInfo" hidden></p>';
     if (solar) { slot('sConn', 'slotConn'); slot('brandBox', 'slotBrand'); slot('sShare', 'slotShare'); slot('sCheat', 'slotCheat'); CRM.solarMore(); }
     CRM.bindBackup(main); CRM.status();
+    // screen fit check: tap the version line to see what this phone reports (Bryton can screenshot it if the top is ever off)
+    $('#verLine').onclick = () => { const f = $('#fitInfo'), m = window.MT_SHELL || {}; f.hidden = !f.hidden; f.textContent = m.sa ? 'Screen fit: ' + m.mode + ', top ' + m.top + ', bottom ' + m.bot + ', page ' + (m.h || m.ih) + ' of ' + m.sh + ' (inset ' + m.envT + '/' + m.envB + ', inner ' + m.ih + ', lvh ' + m.lvh + ')' : 'Screen fit: browser tab'; };
     $('#goBrand').onclick = () => go('brandScreen');
     $('#goTrades').onclick = () => go('tradesScreen');
     $('#goTeam').onclick = () => go('teamScreen');
