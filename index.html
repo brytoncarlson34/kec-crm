@@ -7,14 +7,23 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="KEC CRM">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" href="icons/icon-192.png">
+<script>/* Home Screen app? set before first paint so the header clears the status bar (html.sa in the CSS) */
+if(navigator.standalone===true||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches))document.documentElement.className+=' sa';</script>
 <style>
 :root{--navy:#14213D;--navy2:#1E2C4F;--blue:#1E50A0;--orange:#F06E0A;--orange2:#FF8A2B;--bg:#F4F5F8;--card:#fff;--ink:#0F172A;--ink2:#475569;--ink3:#94A3B8;--line:#E6E8EE;--green:#16A34A;--red:#DC2626;--amber:#D97706;
---r:18px;--sh:0 1px 2px rgba(15,23,42,.06),0 4px 14px rgba(15,23,42,.06);--safe-b:env(safe-area-inset-bottom,0px);--ease:cubic-bezier(.2,.8,.2,1)}
+--r:18px;--sh:0 1px 2px rgba(15,23,42,.06),0 4px 14px rgba(15,23,42,.06);--safe-t:max(env(safe-area-inset-top,0px),var(--safe-t-fb,0px));--safe-b:env(safe-area-inset-bottom,0px);--ease:cubic-bezier(.2,.8,.2,1)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:16px/1.4 -apple-system,"SF Pro Text",Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
 button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;padding:0}
 input,textarea{font:inherit;color:inherit}
 .app{position:fixed;inset:0;overflow:hidden;max-width:520px;margin:0 auto;background:var(--bg)}
+/* shared shell rule (same as Knockout core.css): Home Screen app (html.sa, set before first paint).
+   Top bars pad by --safe-t (env(safe-area-inset-top), or a fallback when iOS 26.x reports 0 there).
+   iOS 26 Home Screen apps size inset:0 / 100% as the screen minus the status bar while drawing from the top,
+   which left a dead strip under the tab bar. 100lvh is the true screen in a Home Screen app. */
+html.sa{height:100lvh}
+html.sa body{height:100lvh}
+html.sa .app{bottom:auto;height:100lvh}
 .view{position:absolute;inset:0;overflow-y:auto;padding:0 16px calc(110px + var(--safe-b));opacity:0;pointer-events:none;transform:translateY(8px);transition:opacity .22s var(--ease),transform .22s var(--ease)}
 .view.on{opacity:1;pointer-events:auto;transform:none}
 .hdr{display:flex;align-items:center;justify-content:space-between;padding:18px 0 10px;position:sticky;top:0;z-index:5;background:linear-gradient(var(--bg) 80%,rgba(244,245,248,0))}
@@ -231,7 +240,7 @@ details.card summary{font-weight:800;font-size:16px;min-height:28px;cursor:point
 /* customer flow */
 #v-new{padding:0 0 140px;background:#fff}
 body.cust .tabs{display:none!important}
-.ch{background:linear-gradient(160deg,var(--navy),var(--navy2));color:#fff;padding:calc(env(safe-area-inset-top) + 16px) 20px 22px;border-radius:0 0 26px 26px}
+.ch{background:linear-gradient(160deg,var(--navy),var(--navy2));color:#fff;padding:calc(var(--safe-t) + 16px) 20px 22px;border-radius:0 0 26px 26px}
 .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:15px;letter-spacing:.01em}
 .brand a{color:#fff;text-decoration:none}
 .brand .x{margin-left:auto;height:36px;padding:0 12px;border-radius:12px;background:rgba(255,255,255,.14);color:#fff;font-weight:700;font-size:14px}
@@ -273,8 +282,8 @@ body.cust .tabs{display:none!important}
 .nopick.on{border-color:var(--orange);color:#C2410C;background:#FFF4EB}
 .sendst{text-align:center;font-size:14px;color:var(--ink2);margin-top:14px}
 @media (min-width:700px){.app{box-shadow:0 0 0 1px var(--line)}}
-.hdr{padding-top:calc(18px + env(safe-area-inset-top))}
-.dtop{padding-top:calc(12px + env(safe-area-inset-top))}
+.hdr{padding-top:calc(18px + var(--safe-t))}
+.dtop{padding-top:calc(12px + var(--safe-t))}
 body.chk .tabs{display:none!important}
 .ch .x{display:none}body.chk:not(.cust) .ch .x{display:inline-flex;align-items:center}
 body:not(.chk):not(.cust) .foot{display:none!important}
@@ -311,7 +320,7 @@ input,select,textarea{font-size:max(16px,1em)}
 .steps li b{display:block;font-size:16.5px;margin-bottom:4px;color:var(--ink)}
 .tapc{margin:0 0 12px}
 /* short phones (iPhone SE): tighter top so the lists get room */
-@media (max-height:760px){#v-today.fit .hdr{padding-top:calc(10px + env(safe-area-inset-top));padding-bottom:6px}#v-today.fit .hdr h1{font-size:24px}
+@media (max-height:760px){#v-today.fit .hdr{padding-top:calc(10px + var(--safe-t));padding-bottom:6px}#v-today.fit .hdr h1{font-size:24px}
  #v-today.fit .hot .tip{display:none}#v-today.fit .hot .n{font-size:20px;margin:4px 0 0}#v-today.fit .stat{padding:8px 10px}#v-today.fit .stat b{font-size:21px}#v-today.fit .stats{margin:6px 0}}
 /* Today stats row carries Run a check, so the bottom button is gone and the lists get the room */
 #v-today .stats{grid-template-columns:repeat(4,1fr);gap:8px}
@@ -362,7 +371,7 @@ input,select,textarea{font-size:max(16px,1em)}
 <li>The homeowner 25D credit has NO EC adder. Never promise a +10% on it. EC bonus is for project credits (lease, PPA).</li>
 <li>Confirm before you lock EC pricing.</li></ul>
 <a href="https://arcgis.netl.doe.gov/portal/apps/experiencebuilder/experience/?id=a2ce47d4721a477a8701bd0e08495e1d" target="_blank" rel="noopener">Official Energy Community map (DOE)</a></details>
-<p class="meta2" style="text-align:center">Kern Energy Check CRM v2</p>
+<p class="meta2" style="text-align:center">Kern Energy Check CRM v2.3</p>
 </section>
 <section class="view" id="v-new"><header class="ch"><div class="brand"><span class="logo" id="lg"></span><a id="hLink" href="#" target="_blank" rel="noopener"><span id="hCo">Kern County Energy Guide</span></a><button class="x" id="cClose" type="button">Close</button></div>
 <h1 id="hT">Free 2-minute Energy Check</h1><p id="hS">See if solar, a battery, or an HVAC upgrade makes sense for your home. No pressure, no spam.</p>
@@ -643,7 +652,7 @@ async function cSave(){const d=CU.A,f=CU.file;
  CU.step=5;cShow();sendState();}
 function readFile(f){return new Promise((res,rej)=>{if(f.size>8*1024*1024){res({name:f.name,type:f.type,size:f.size,tooBig:true});return;}const r=new FileReader();r.onload=()=>res({name:f.name,type:f.type||'application/octet-stream',size:f.size,data:String(r.result).split(',')[1]||''});r.onerror=rej;r.readAsDataURL(f);});}
 function sendState(){const el=cg('sendSt');if(!el||CU.step!==5)return;const q=db().queue.length;el.innerHTML=!q?'<span class="ok2">✓ Sent to '+FN()+'</span>':'Sending... keep this page open a few seconds.';}
-cg('cNew').onclick=()=>{if(!IS_CUST)location.hash='#new';location.reload();};
+cg('cNew').onclick=()=>{if(!IS_CUST){try{sessionStorage.setItem('kec_boot','new');}catch(e){}location.hash='#new';}location.reload();};
 cg('lg').innerHTML=I.bolt;cg('fIc').innerHTML=I.file;
 tiles('tB','bill',BILL);tiles('tO','own',OWN);tiles('tS','solar',SOLAR);tiles('tBa','battery',BATT);tiles('tR','roof',ROOF);utilTiles();
 
@@ -683,6 +692,13 @@ if(IS_CUST){try{const a=new URLSearchParams(location.search).get('api');const c=
 ['gesturestart','gesturechange','gestureend'].forEach(t=>document.addEventListener(t,e=>e.preventDefault(),{passive:false}));
 document.addEventListener('touchmove',e=>{if(e.touches&&e.touches.length>1)e.preventDefault();},{passive:false});
 const STANDALONE=window.navigator.standalone===true||!!(window.matchMedia&&matchMedia('(display-mode: standalone)').matches);
+/* shared shell rule (same as Knockout core.js shell()): status bar fallback for iOS 26.x reporting a 0 top inset */
+function shell(){const de=document.documentElement;de.classList.toggle('sa',STANDALONE);if(!STANDALONE){de.style.removeProperty('--safe-t-fb');return;}
+ const p=document.createElement('div');p.style.cssText='position:fixed;left:0;top:0;width:1px;height:1px;visibility:hidden;pointer-events:none;padding-top:env(safe-area-inset-top,0px)';document.body.appendChild(p);
+ const envT=parseFloat(getComputedStyle(p).paddingTop)||0;p.remove();let fb=0;
+ if(window.navigator.standalone===true&&envT<1&&innerHeight>=innerWidth){const sh=Math.max(screen.width,screen.height);fb=sh>=956||sh===874?62:sh>=852&&sh!==896&&sh!==926?59:sh>=812?47:20;}
+ if(fb)de.style.setProperty('--safe-t-fb',fb+'px');else de.style.removeProperty('--safe-t-fb');}
+shell();['resize','orientationchange','pageshow'].forEach(t=>addEventListener(t,()=>setTimeout(shell,60)));
 /* finds #setup=<base64 {api,key,rep}> in any text, even a link a mail app wrapped (…%23setup%3D…) */
 function parseSetupText(t){let s=String(t||''),m=null;for(let i=0;i<3&&!(m=/setup=([^&\s#"'<>]+)/.exec(s));i++){try{s=decodeURIComponent(s);}catch(e){break;}}if(!m)return null;
  try{const o=JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(m[1]).replace(/-/g,'+').replace(/_/g,'/')))));return o&&(o.api||o.key)?o:null;}catch(e){return null;}}
@@ -864,7 +880,7 @@ function tabs(){const badge=ALL().filter(needsYou).length;
  $('tabs').querySelectorAll('.tab').forEach(b=>b.onclick=()=>go(b.dataset.v));$('plusBtn').onclick=quickAdd;}
 function go(v,noHash){if(v==='set')v='more';if(!['today','leads','pipe','more','new'].includes(v))v='today';view=v;
  document.querySelectorAll('.view').forEach(s=>s.classList.toggle('on',s.id==='v-'+v));document.body.classList.toggle('chk',v==='new');
- if(v==='new'){if(CU.step===5){location.hash='#new';location.reload();return;}cShow();}
+ if(v==='new'){if(CU.step===5){try{sessionStorage.setItem('kec_boot','new');}catch(e){}location.hash='#new';location.reload();return;}cShow();}
  if(!IS_CUST&&!noHash)history.replaceState(history.state,'','#'+v);render();const el=$('v-'+v);if(el)el.scrollTop=0;}
 function leadRow(l){const c=dueCls(l),ns=nextStep(l),dd=dueDate(l),ck=leadCheck(l);
  const nx=l.stage==='Booked'&&l.appt&&!needsYou(l)?'Call '+rel(l.appt)+' · '+tLbl(l.appt):ns?esc(ns)+(dd?' · '+rel(dd):'')+(l.appt&&!CLOSED.includes(l.stage)?' · call '+fmtU(l.appt,{weekday:'short'})+' '+tLbl(l.appt):''):esc(l.outcome||'');
@@ -1033,7 +1049,11 @@ function render(){DB=db();if(IS_CUST){sendState();return;}tabs();if(view==='toda
  if(openId&&$('detail').classList.contains('on')&&!$('detail').contains(document.activeElement))renderDetail();}
 setInterval(()=>document.querySelectorAll('.timer').forEach(t=>t.textContent=relAgo(t.dataset.since)),30000);
 if(IS_CUST){document.body.classList.add('cust');go('new',true);sync();}
-else{fillCfg();const h=(location.hash||'').replace('#','');go(['today','leads','new','pipe','more','set'].includes(h)?h:'today');bootCheck=true;checkReturn();bootCheck=false;sync();
+else{fillCfg();
+ /* always open on Today: a fresh launch, the Home Screen start address, or an old #leads/#pipe/#more left in the
+    address. Only the app's own "start a new check" reload (flag in sessionStorage) goes back to the check. */
+ let bootNew=false;try{bootNew=sessionStorage.getItem('kec_boot')==='new';sessionStorage.removeItem('kec_boot');}catch(e){}
+ go(bootNew&&location.hash==='#new'?'new':'today');bootCheck=true;checkReturn();bootCheck=false;sync();
  setInterval(()=>{if(db().queue.length&&!syncing)sync();},30000);
  if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});}
 if(bootToast)toast(bootToast);

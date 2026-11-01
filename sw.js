@@ -1,7 +1,7 @@
 // Offline shell for Kern Energy Check CRM. Lead data lives in localStorage and syncs to the Sheet.
 // This address (brytoncarlson34.github.io) is shared with other apps, like /knockout-forms/ (caches 'kf-*').
 // So we only ever touch our own 'kec-crm-*' caches and only answer requests inside our own folder.
-const V='kec-crm-v2.2';
+const V='kec-crm-v2.3';
 const SHELL=['./','index.html','manifest.webmanifest','icons/icon-192.png','icons/icon-512.png','icons/apple-touch-icon.png'];
 const SCOPE=new URL('./',self.location).href; // https://brytoncarlson34.github.io/kec-crm/
 self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(SHELL)));self.skipWaiting();});
