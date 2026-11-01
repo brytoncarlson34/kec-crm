@@ -1,6 +1,6 @@
 {
-  "name": "Kern Energy Check CRM",
-  "short_name": "KEC CRM",
+  "name": "CRM",
+  "short_name": "CRM",
   "start_url": "./#today",
   "scope": "./",
   "display": "standalone",
