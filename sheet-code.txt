@@ -1,0 +1,240 @@
+/**
+ * CRM backend for your own Google Sheet (Google Apps Script).
+ * 1. Open your Google Sheet. Extensions > Apps Script. Delete what is there and paste all of this.
+ * 2. Change PICK-A-PIN below to a PIN only your team knows. Save.
+ * 3. Deploy > New deployment > gear > Web app. Execute as: Me. Who has access: Anyone. Deploy, then Allow.
+ * 4. Copy the Web app URL (it ends in /exec) and paste it in the app: More > Back up your data > Use my own Google Sheet.
+ * The app saves new leads here. Reading and editing leads needs the PIN. It can also read and add to your Google Calendar
+ * (Pipeline > Calendar > Link calendars > Through my own Sheet). Nothing works until you change the PIN.
+ */
+const REP_PIN = 'PICK-A-PIN';   // change this to a PIN only your team knows, then Save and Deploy
+const TZ = 'America/Los_Angeles';
+const STAGES = ['New','Contacted','Booked','Showed','Proposal','Won','Lost','Nurture'];
+const LEAD_COLS = ['id','created','updated','source','name','phone','email','address','owner_renter','need','consent','stage','next_step','next_date','appt','outcome','notes','rep'];
+const CHECK_COLS = ['check_id','lead_id','ts','rep','first','mobile','email','street','apt','city','state','zip','utility','county','ec_sa','kern_county','bill','solar','battery','roof','own','result','reminders','reminder_freq','consent_text','renter_path','landlord_intro','green_button_filename','usage_call_needed','source','score','appt_request','green_button_url'];
+const CLOSED = ['Won','Lost'];
+const FILE_FOLDER = 'CRM usage files';
+const EDITABLE = ['source','name','phone','email','address','owner_renter','need','consent','stage','next_step','next_date','appt','outcome','notes','rep'];
+
+function onOpen() {
+  SpreadsheetApp.getUi().createMenu('CRM')
+    .addItem('Set up tabs', 'setup')
+    .addToUi();
+}
+
+function setup() {
+  ensure_('Leads', LEAD_COLS); ensure_('Checks', CHECK_COLS);
+  const ss = SpreadsheetApp.getActive();
+  // Lists (stage dropdown source)
+  let li = ss.getSheetByName('Lists');
+  if (!li) { li = ss.insertSheet('Lists'); li.getRange(1, 1, STAGES.length + 1, 1).setValues([['Stages']].concat(STAGES.map(x => [x]))); li.getRange('A1').setFontWeight('bold'); }
+  // Pipeline counts (only filled if the tab is new or empty, so your edits stay)
+  let pl = ss.getSheetByName('Pipeline');
+  if (!pl) pl = ss.insertSheet('Pipeline');
+  if (pl.getLastRow() === 0) {
+    pl.getRange('A1:B1').setValues([['Stage', 'Leads']]); pl.getRange('D1:E1').setValues([['Leads by need', '']]);
+    STAGES.forEach((x, i) => { pl.getRange(i + 2, 1).setValue(x); pl.getRange(i + 2, 2).setFormula('=COUNTIF(Leads!$L:$L,A' + (i + 2) + ')'); });
+    ['HVAC', 'Solar', 'Solar + HVAC', 'Battery', 'Other'].forEach((x, i) => { pl.getRange(i + 2, 4).setValue(x); pl.getRange(i + 2, 5).setFormula('=COUNTIF(Leads!$J:$J,D' + (i + 2) + ')'); });
+    pl.getRange('A10').setValue('Total'); pl.getRange('B10').setFormula('=SUM(B2:B9)');
+    pl.getRange('A12:A15').setValues([['Open leads'], ['Due today or late'], ['Booked rate'], ['Close rate (won / showed+)']]);
+    pl.getRange('B12:B15').setFormulas([['=SUM(B2:B6)+B9'],
+      ['=SUMPRODUCT((Leads!$N$2:$N$2000<>"")*(Leads!$N$2:$N$2000<=TEXT(TODAY(),"yyyy-mm-dd"))*(Leads!$L$2:$L$2000<>"Won")*(Leads!$L$2:$L$2000<>"Lost"))'],
+      ['=IFERROR((B4+B5+B6+B7)/B10,0)'], ['=IFERROR(B7/(B5+B6+B7+B8),0)']]);
+    pl.getRange('B14:B15').setNumberFormat('0%');
+    pl.getRange('A1:E1').setFontWeight('bold'); pl.setFrozenRows(1);
+  }
+  // Start Here
+  let sh = ss.getSheetByName('Start Here');
+  if (!sh) {
+    sh = ss.insertSheet('Start Here', 0);
+    sh.getRange(1, 1, 7, 1).setValues([['CRM'], [''], ['The phone app writes here. One row per person on Leads, one row per form run on Checks.'], ['Pipeline counts update on their own.'],
+      ['Stages: New, Contacted, Booked, Showed, Proposal, Won, Lost, Nurture.'], ['Edit in the app when you can. Editing here works too, just keep the column headers as they are.'], ['Do not rename the Leads or Checks tabs.']]);
+    sh.getRange('A1').setFontWeight('bold').setFontSize(16); sh.setColumnWidth(1, 720);
+  }
+  // Dropdowns on Leads: stage, owner/renter, need (looked up by header so moved columns still work)
+  const L = ss.getSheetByName('Leads'), h = headers_(L);
+  const dv = (col, rule) => { const i = h.indexOf(col); if (i >= 0) L.getRange(2, i + 1, 1999, 1).setDataValidation(rule.setAllowInvalid(true).build()); };
+  dv('stage', SpreadsheetApp.newDataValidation().requireValueInRange(li.getRange('A2:A' + (STAGES.length + 1)), true));
+  dv('owner_renter', SpreadsheetApp.newDataValidation().requireValueInList(['Owner', 'Renter'], true));
+  dv('need', SpreadsheetApp.newDataValidation().requireValueInList(['HVAC', 'Solar', 'Solar + HVAC', 'Battery', 'Other'], true));
+  try { SpreadsheetApp.getUi().alert('Tabs are set up: Start Here, Leads, Checks, Pipeline, Lists.'); } catch (e) {}
+}
+
+function now_() { return Utilities.formatDate(new Date(), TZ, "yyyy-MM-dd HH:mm"); }
+
+function ensure_(name, cols) {
+  const ss = SpreadsheetApp.getActive();
+  const sh = ss.getSheetByName(name) || ss.insertSheet(name);
+  if (sh.getLastRow() === 0) {
+    sh.getRange(1, 1, 1, cols.length).setValues([cols]).setFontWeight('bold');
+    sh.setFrozenRows(1);
+  } else {
+    const h = headers_(sh);
+    cols.filter(c => h.indexOf(c) < 0).forEach(c => sh.getRange(1, sh.getLastColumn() + 1).setValue(c).setFontWeight('bold'));
+  }
+  return sh;
+}
+
+function headers_(sh) {
+  return sh.getRange(1, 1, 1, Math.max(1, sh.getLastColumn())).getDisplayValues()[0].map(String);
+}
+
+function table_(sh) {
+  const h = headers_(sh), n = sh.getLastRow() - 1;
+  const v = n > 0 ? sh.getRange(2, 1, n, h.length).getDisplayValues() : [];
+  return { h, rows: v.map((r, i) => { const o = { _row: i + 2 }; h.forEach((k, j) => o[k] = r[j]); return o; }) };
+}
+
+function writeRow_(sh, h, obj, row) {
+  const vals = h.map(k => (obj[k] == null ? '' : String(obj[k])));
+  const r = row || sh.getLastRow() + 1;
+  const rg = sh.getRange(r, 1, 1, h.length);
+  rg.setNumberFormat('@');
+  rg.setValues([vals]);
+  return r;
+}
+
+function out_(o) { return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON); }
+function strip_(r) { const o = {}; LEAD_COLS.forEach(k => o[k] = r[k] || ''); return o; }
+const dig_ = s => String(s || '').replace(/\D/g, '').slice(-10);
+const em_ = s => String(s || '').trim().toLowerCase();
+
+function upsertLead_(sh, T, lead, isCheck, idmap) {
+  lead = lead || {};
+  const t = now_();
+  let L = (lead.id && T.rows.find(r => r.id === lead.id)) ||
+          T.rows.find(r => (dig_(lead.phone).length >= 7 && dig_(r.phone) === dig_(lead.phone)) ||
+                           (em_(lead.email) && em_(r.email) === em_(lead.email)));
+  const fileLine = isCheck && /^https?:/.test(isCheck.green_button_url || '') ? t + ' · Note · Usage file saved to Drive: ' + isCheck.green_button_url : '';
+  if (L) {
+    const closed = CLOSED.indexOf(L.stage) >= 0;
+    // a closed (Won/Lost) lead keeps its stage, next step, dates and outcome. Nothing reopens.
+    const keep = closed ? ['stage', 'next_step', 'next_date', 'appt', 'outcome'] : [];
+    LEAD_COLS.forEach(k => { if (keep.indexOf(k) >= 0 || (isCheck && k === 'notes')) return; if (!L[k] && lead[k]) L[k] = lead[k]; });
+    if (String(lead.consent || '').indexOf('Yes') === 0) L.consent = lead.consent;
+    if (isCheck) {
+      const first = String(lead.notes || '').split('\n')[0];
+      const cn = / · Check · /.test(first) ? first : t + ' · Check · New energy check' + (isCheck.result ? ' (' + isCheck.result + ')' : '');
+      const lines = [cn];
+      if (fileLine) lines.push(fileLine);
+      if (closed) lines.push(t + ' · Note · New check came in, kept as ' + L.stage);
+      else if (isCheck.appt_request && !L.appt) {
+        L.appt = isCheck.appt_request;
+        if (['New', 'Contacted', 'Nurture'].indexOf(L.stage) >= 0) L.stage = 'Booked';
+        L.next_step = 'Call at booked time'; L.next_date = String(isCheck.appt_request).slice(0, 10);
+      }
+      L.notes = lines.join('\n') + (L.notes ? '\n' + L.notes : '');
+    }
+    L.updated = t;
+    writeRow_(sh, T.h, L, L._row);
+    if (lead.id && lead.id !== L.id) idmap[lead.id] = L.id;
+    return L.id;
+  }
+  const n = Object.assign({}, lead, {
+    id: lead.id || ('L-' + Date.now().toString(36)),
+    created: lead.created || t, updated: t,
+    stage: STAGES.indexOf(lead.stage) >= 0 ? lead.stage : 'New'
+  });
+  if (!n.next_step && (n.stage === 'New' || (n.stage === 'Booked' && n.appt))) n.next_step = n.appt ? 'Call at booked time' : 'Call to book';
+  if (!n.next_date && n.next_step) n.next_date = n.appt ? String(n.appt).slice(0, 10) : t.slice(0, 10);
+  if (fileLine) n.notes = (n.notes ? n.notes + '\n' : '') + fileLine;
+  n._row = writeRow_(sh, T.h, n);
+  T.rows.push(n);
+  return n.id;
+}
+
+function doPost(e) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(25000);
+  try {
+    const b = JSON.parse((e && e.postData && e.postData.contents) || '{}');
+    const authed = REP_PIN !== 'PICK-A-PIN' && String(b.key || '') === REP_PIN;
+    if (b.action === 'ping') return out_({ ok: true, authed });
+    if (b.action === 'slots') { // taken call times only, no names or numbers
+      const today = now_().slice(0, 10);
+      const taken = table_(ensure_('Leads', LEAD_COLS)).rows.filter(r => r.appt && CLOSED.indexOf(r.stage) < 0 && String(r.appt).slice(0, 10) >= today).map(r => String(r.appt).slice(0, 16));
+      return out_({ ok: true, taken });
+    }
+    if (b.action === 'calendar' || b.action === 'calAdd') { if (!authed) return out_({ ok: false, error: 'PIN' }); return out_(b.action === 'calendar' ? calRead_(b) : calAdd_(b)); }
+    if (b.action !== 'sync') return out_({ ok: false, error: 'bad action' });
+    const leadsSh = ensure_('Leads', LEAD_COLS), checksSh = ensure_('Checks', CHECK_COLS);
+    const T = table_(leadsSh), C = table_(checksSh);
+    const seen = new Set(C.rows.map(r => r.check_id));
+    const idmap = {};
+    (b.ops || []).forEach(o => {
+      if (o.op === 'check' || o.op === 'add') {
+        if (o.check && seen.has(o.check.check_id)) { // retry of something already saved
+          const prev = C.rows.find(r => r.check_id === o.check.check_id);
+          if (prev && o.lead && o.lead.id && prev.lead_id !== o.lead.id) idmap[o.lead.id] = prev.lead_id;
+          return;
+        }
+        if (o.check && o.file && o.file.data) o.check.green_button_url = saveFile_(o.file, o.check);
+        const id = upsertLead_(leadsSh, T, o.lead, o.op === 'check' ? (o.check || {}) : null, idmap);
+        if (o.check) {
+          const c = Object.assign({}, o.check, { lead_id: id });
+          writeRow_(checksSh, C.h, c);
+          seen.add(c.check_id);
+          C.rows.push(c);
+        }
+      } else if (o.op === 'update' && authed) {
+        const id = idmap[o.id] || o.id;
+        const L = T.rows.find(r => r.id === id);
+        if (L) {
+          EDITABLE.forEach(k => { if (o.fields && k in o.fields) L[k] = o.fields[k]; });
+          if (o.fields && o.fields._note) L.notes = String(o.fields._note) + (L.notes ? '\n' + L.notes : '');
+          L.updated = now_();
+          writeRow_(leadsSh, T.h, L, L._row);
+        }
+      }
+    });
+    const checks = authed ? C.rows.slice(-300).map(r => { const o = {}; CHECK_COLS.forEach(k => o[k] = r[k] == null ? '' : String(r[k])); return o; }) : null;
+    return out_({ ok: true, authed, idmap, leads: authed ? T.rows.map(strip_) : null, checks });
+  } catch (err) {
+    return out_({ ok: false, error: String(err) });
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/** Saves an uploaded Green Button / usage file to Drive. Returns the file link, or a short reason it failed. */
+function saveFile_(f, check) {
+  try {
+    const it = DriveApp.getFoldersByName(FILE_FOLDER);
+    const folder = it.hasNext() ? it.next() : DriveApp.createFolder(FILE_FOLDER);
+    const name = [String(check.ts || now_()).slice(0, 10), check.first || '', f.name || 'usage-file'].filter(Boolean).join(' - ');
+    const file = folder.createFile(Utilities.newBlob(Utilities.base64Decode(f.data), f.type || 'application/octet-stream', name));
+    return file.getUrl();
+  } catch (err) {
+    return 'not saved: ' + String(err).slice(0, 80);
+  }
+}
+
+function doGet(e) {
+  const p = (e && e.parameter) || {};
+  if (p.action === 'ping') return out_({ ok: true, authed: REP_PIN !== 'PICK-A-PIN' && p.key === REP_PIN });
+  if (p.action === 'list') {
+    if (REP_PIN === 'PICK-A-PIN' || p.key !== REP_PIN) return out_({ ok: false, error: 'PIN' });
+    return out_({ ok: true, leads: table_(ensure_('Leads', LEAD_COLS)).rows.map(strip_) });
+  }
+  return HtmlService.createHtmlOutput('<h2>CRM is running.</h2><p>Open the phone app to use it.</p>');
+}
+
+/** Pipeline calendar: events from your Google Calendar (blank calId = your main calendar). Dates are Pacific 'yyyy-MM-dd'. */
+function calOf_(id) { return id ? CalendarApp.getCalendarById(id) : CalendarApp.getDefaultCalendar(); }
+function calRead_(b) {
+  const cal = calOf_(b.calId); if (!cal) return { ok: false, error: 'calendar' };
+  const from = Utilities.parseDate(String(b.from || now_().slice(0, 10)) + ' 00:00', TZ, 'yyyy-MM-dd HH:mm');
+  const to = Utilities.parseDate(String(b.to || now_().slice(0, 10)) + ' 23:59', TZ, 'yyyy-MM-dd HH:mm');
+  const f = d => Utilities.formatDate(d, TZ, 'yyyy-MM-dd HH:mm');
+  const events = cal.getEvents(from, to).slice(0, 800).map(e => ({ uid: e.getId(), title: e.getTitle(), start: e.isAllDayEvent() ? f(e.getAllDayStartDate()).slice(0, 10) : f(e.getStartTime()), end: f(e.getEndTime()), allDay: e.isAllDayEvent(), where: e.getLocation() || '' }));
+  return { ok: true, name: cal.getName(), events: events };
+}
+/** Adds a booked job to your Google Calendar. start is 'yyyy-MM-dd HH:mm' (or 'yyyy-MM-dd' for all day), Pacific. */
+function calAdd_(b) {
+  const cal = calOf_(b.calId); if (!cal) return { ok: false, error: 'calendar' };
+  const s = String(b.start || ''), opt = { location: String(b.where || ''), description: String(b.note || '') }, title = String(b.title || 'Job').slice(0, 200);
+  let ev;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) ev = cal.createAllDayEvent(title, Utilities.parseDate(s + ' 00:00', TZ, 'yyyy-MM-dd HH:mm'), opt);
+  else { const st = Utilities.parseDate(s.slice(0, 16), TZ, 'yyyy-MM-dd HH:mm'); ev = cal.createEvent(title, st, new Date(st.getTime() + (Number(b.mins) || 60) * 60000), opt); }
+  return { ok: true, id: ev.getId() };
+}
