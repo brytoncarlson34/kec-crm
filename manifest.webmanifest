@@ -1,6 +1,6 @@
 {
-  "name": "CRM",
-  "short_name": "CRM",
+  "name": "Shop CRM",
+  "short_name": "Shop CRM",
   "start_url": "./#today",
   "scope": "./",
   "display": "standalone",
