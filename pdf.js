@@ -20,9 +20,37 @@
     return { lines, sub, tax, total: sub + tax };
   }
 
+  /* v2.4.0 helpers shared with the fill screen */
+  const SEG = { yesno: ['Yes', 'No'], passfail: ['Pass', 'Fail'], rating: ['1', '2', '3', '4', '5'] };
+  const has = x => Array.isArray(x) ? x.length > 0 : String(x == null ? '' : x).trim() !== '';
+  const showText = (f, x) => Array.isArray(x) ? (f.type === 'photos' ? '' : x.join(', ')) : String(x == null ? '' : x) + (f.unit && has(x) ? ' ' + f.unit : '');
+  /* number guide: { lo, hi, ok, low, high } -> the plain line under the box. s: ok | hi | lo | '' */
+  function rangeHint(f, x) {
+    const r = f.range; if (!r || !has(x) || isNaN(parseFloat(String(x).replace(/[^0-9.\-]/g, '')))) return { t: r && r.ok ? 'Type the reading. ' + r.ok : '', s: '' };
+    const n = num(x); return n > r.hi ? { t: r.high, s: 'hi' } : n < r.lo ? { t: r.low, s: 'lo' } : { t: r.ok, s: 'ok' };
+  }
+  const isBad = (f, x) => has(x) && (f.type === 'passfail' ? x === 'Fail' : (f.range ? rangeHint(f, x).s === 'hi' || rangeHint(f, x).s === 'lo' : !!f.bad && [].concat(x).some(y => f.bad.indexOf(y) >= 0)));
+  /* everything marked as needing work: fails, out-of-range readings, and answers the form calls bad (a leak, a stuck valve) */
+  function needsWork(form, vals) {
+    const out = [], V = vals || {};
+    (form.sections || []).forEach(s => {
+      if (s.optional && !V['_on_' + s.id]) return;
+      s.fields.forEach(f => {
+        if (f.type === 'group') (V[f.id] || []).forEach((r, i) => {
+          const hits = (f.fields || []).filter(sf => isBad(sf, r[sf.id])).map(sf => (sf.short || sf.label) + ': ' + showText(sf, r[sf.id]));
+          if (hits.length) out.push((r.name || (f.label || 'Row') + ' ' + (i + 1)) + ': ' + hits.join(', ') + (has(r.note) ? ' (' + r.note + ')' : ''));
+        });
+        else if (isBad(f, V[f.id])) out.push((f.short || f.label) + ': ' + showText(f, V[f.id]) + (f.range ? ' (' + rangeHint(f, V[f.id]).t + ')' : ''));
+      });
+    });
+    return out;
+  }
+
   function build(form, vals, sigs, brand) {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ unit: 'pt', format: 'letter' });
+    /* photos keep their shape: fit inside the box, centered */
+    const fitImg = (p, x, y, w, h) => { try { const pr = doc.getImageProperties(p), r = Math.min(w / pr.width, h / pr.height), iw = pr.width * r, ih = pr.height * r; doc.addImage(p, imgFmt(p), x + (w - iw) / 2, y + (h - ih) / 2, iw, ih, undefined, 'FAST'); } catch (e) { try { doc.addImage(p, imgFmt(p), x, y, w, h, undefined, 'FAST'); } catch (x2) {} } };
     const P = rgb(brand.colors.primary), A = rgb(brand.colors.accent), B = rgb(brand.colors.bg);
     const GRAY = [110, 104, 96], LINE = [200, 192, 182], INK = [29, 29, 31];
     let y = 0;
@@ -100,6 +128,38 @@
       const v = vals[f.id];
       switch (f.type) {
         case 'checkbox': choiceLine(f.label, ['Yes'], v ? ['Yes'] : []); break;
+        case 'yesno': case 'passfail': case 'rating': choiceLine(f.label, SEG[f.type], v ? [v] : []); break;
+        case 'heading': bar(f.label || ''); break;
+        case 'signature': {
+          if (!v) break; ensure(92); label(f.label, M, y);
+          doc.setDrawColor(...LINE); doc.setLineWidth(0.8); doc.roundedRect(M, y + 4, CW / 2, 62, 2, 2, 'S');
+          try { doc.addImage(v, 'PNG', M + 8, y + 7, CW / 2 - 16, 56); } catch (e) {}
+          y += 80; break;
+        }
+        case 'needswork': {
+          const list = needsWork(form, vals); ensure(30); label(f.label, M, y); y += 14;
+          if (!list.length) { font('normal', 10.5); set(INK); doc.text('Nothing needs work today.', M, y); y += 16; break; }
+          list.forEach(it => { font('normal', 10.5); const ls = doc.splitTextToSize(clean(it), CW - 22); ensure(ls.length * 13 + 4); set(P, 1); doc.circle(M + 5, y - 3.5, 2.4, 'F'); set(INK); doc.text(ls, M + 16, y); y += ls.length * 13 + 3; });
+          y += 6; break;
+        }
+        case 'group': {
+          /* one box per room or fixture: answers on a line or two, a red edge and NEEDS WORK when something is off, then its photos */
+          (v || []).filter(r => r && (has(r.name) || (f.fields || []).some(sf => has(r[sf.id])))).forEach((r, i) => {
+            const sub = f.fields || [], bad = sub.some(sf => isBad(sf, r[sf.id]));
+            const pairs = sub.filter(sf => sf.type !== 'photos' && sf.type !== 'signature' && has(r[sf.id])).map(sf => (sf.short || sf.label) + ': ' + showText(sf, r[sf.id]));
+            const ph = sub.filter(sf => sf.type === 'photos').flatMap(sf => (r[sf.id] || []).filter(Boolean)).slice(0, 4);
+            font('normal', 10); const ls = doc.splitTextToSize(clean(pairs.length ? pairs.join('     ') : 'Not checked'), CW - 24);
+            const h = 22 + ls.length * 12 + (ph.length ? 84 : 0); ensure(h + 8);
+            doc.setDrawColor(...LINE); doc.setLineWidth(0.8); doc.roundedRect(M, y, CW, h, 3, 3, 'S');
+            set(bad ? P : pairs.length ? [46, 125, 79] : LINE, 1); doc.rect(M, y, 4, h, 'F');
+            font('bold', 11); set(A); doc.text(clean(r.name || (f.label || 'Row') + ' ' + (i + 1)), M + 12, y + 15);
+            if (bad) { font('bold', 8.5); set(P); doc.text('NEEDS WORK', W - M - 10, y + 15, { align: 'right' }); }
+            font('normal', 10); set(pairs.length ? INK : GRAY); doc.text(ls, M + 12, y + 29);
+            ph.forEach((p, k) => { fitImg(p, M + 12 + k * 116, y + 22 + ls.length * 12 + 2, 108, 76); });
+            y += h + 7;
+          });
+          break;
+        }
         case 'choice': choiceLine(f.label, f.options, v ? [v] : []); break;
         case 'multi': choiceLine(f.label, f.options, v || []); break;
         case 'static': {
@@ -185,7 +245,7 @@
           const pw = (CW - 12) / 2, phh = pw * 0.72;
           for (let i = 0; i < ph.length; i += 2) {
             ensure(phh + 10);
-            [ph[i], ph[i + 1]].forEach((p, j) => { if (!p) return; try { doc.addImage(p, imgFmt(p), M + j * (pw + 12), y, pw, phh, undefined, 'FAST'); } catch (e) {} });
+            [ph[i], ph[i + 1]].forEach((p, j) => { if (!p) return; fitImg(p, M + j * (pw + 12), y, pw, phh); });
             y += phh + 10;
           }
           break;
@@ -196,6 +256,7 @@
     }
 
     function section(sec) {
+      if (sec.optional && !vals['_on_' + sec.id]) return;  /* an optional part that was switched off stays off the PDF */
       const fs = sec.fields; bar(sec.title);
       const simple = t => ['text', 'tel', 'email', 'date', 'number'].indexOf(t) >= 0;
       let i = 0;
@@ -205,7 +266,7 @@
         if (simple(f.type)) {
           const group = [f]; let j = i + 1;
           if (f.half) while (j < fs.length && simple(fs[j].type) && fs[j].half && group.length < 2) { if (String(vals[fs[j].id] == null ? '' : vals[fs[j].id]).trim()) group.push(fs[j]); j++; }
-          boxRow(group.map(g => ({ label: g.label, value: g.type === 'date' ? fmtDate(vals[g.id]) : (vals[g.id] || ''), w: 1 / group.length })));
+          boxRow(group.map(g => ({ label: g.label + (g.range && has(vals[g.id]) ? ': ' + rangeHint(g, vals[g.id]).t.replace(/\.$/, '') : ''), value: g.type === 'date' ? fmtDate(vals[g.id]) : showText(g, vals[g.id] || ''), w: 1 / group.length })));
           i = j; continue;
         }
         field(f); i++;
@@ -253,5 +314,5 @@
     const vis = f.cols.filter(c => sel.indexOf(String(c.when || c.label).toLowerCase()) >= 0);
     return vis.length ? vis : f.cols;
   }
-  window.KFPDF = { build, invoiceTotals, money, num, visibleCols };
+  window.KFPDF = { build, invoiceTotals, money, num, visibleCols, needsWork, rangeHint };
 })();

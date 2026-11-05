@@ -170,19 +170,66 @@ window.APP_CONFIG = {
       ]
     },
 
+    /* v2.4.0: the yearly whole-house check. Works for any plumbing shop (no shop names here). Water quality and the
+       annual plan are optional sections (a switch on the form). Fixture rows are a repeatable group: add or remove rows.
+       Anything marked needs work rolls up into the summary; after sending, one tap makes an Estimate from the fixes. */
     {
-      id: 'inspection', pack: 'plumbing', icon: 'search',
-      title: 'Plumbing Inspection Report', short: 'Inspection',
-      blurb: 'Walk the house, rate each spot, add photos.',
+      /* id stays 'inspection' (was the Plumbing Inspection Report) so saved wording, hidden switches and sent forms carry over */
+      id: 'inspection', pack: 'plumbing', icon: 'search', toEstimate: 'recs', offerForm: 'wh-agreement',
+      title: 'Annual Plumbing Inspection', short: 'Yearly inspection',
+      blurb: 'Pressure, water check, every fixture and valve.',
       sections: [
-        { title: 'What we checked', fields: [
-          { id: 'inspect', type: 'inspect', label: 'Checked', items: [
-            'Water heater', 'Water pressure', 'Main shutoff', 'Toilets', 'Sinks and faucets',
-            'Drains', 'Outdoor hose bibs', 'Sewer cleanout', 'Gas line', 'Visible leaks'] }
+        { id: 'home', title: 'Home info', fields: [
+          { id: 'year_built', label: 'Year built (if known)', type: 'number', half: true },
+          { id: 'water_source', label: 'Water comes from', type: 'choice', options: ['City water', 'Well'] },
+          { id: 'main_shutoff', label: 'Main shutoff is at', type: 'text', placeholder: 'like front yard by the sidewalk' }
         ]},
-        { title: 'What we recommend', fields: [
-          { id: 'recs', label: 'Recommendations', type: 'textarea' },
-          { id: 'photos', label: 'Photos', type: 'photos', max: 4 }
+        { id: 'pressure', title: 'Water pressure', fields: [
+          { id: 'psi', label: 'Static pressure', type: 'number', unit: 'PSI', half: true, sets: 'psi_result',
+            range: { lo: 40, hi: 80, ok: 'Good range (40 to 80 PSI).', high: 'Over 80 PSI. Suggest a pressure regulator.', low: 'Under 40 PSI. Low pressure, note it.' } },
+          { id: 'psi_result', label: 'Pressure', type: 'passfail' },
+          { id: 'prv', label: 'Pressure regulator on the house', type: 'yesno' },
+          { id: 'psi_photo', label: 'Photo of the gauge', type: 'photos', max: 1 },
+          { id: 'psi_note', type: 'note', text: 'Good range is 40 to 80 PSI. Over 80, suggest a pressure regulator. Under 40, note the low pressure.' }
+        ]},
+        { id: 'quality', title: 'Water quality', optional: true, toggle: 'Do a quick water check', fields: [
+          { id: 'wq_hard', label: 'Hardness', type: 'number', unit: 'gpg', half: true },
+          { id: 'wq_cl', label: 'Chlorine', type: 'number', unit: 'ppm', half: true },
+          { id: 'wq_ph', label: 'pH', type: 'number', unit: 'pH', half: true },
+          { id: 'wq_tds', label: 'TDS', type: 'number', unit: 'ppm', half: true },
+          { id: 'wq_method', label: 'How we tested', type: 'choice', options: ['Test strips', 'Meter', 'Lab'] },
+          { id: 'wq_notes', label: 'Notes', type: 'textarea' },
+          { id: 'wq_note', type: 'note', text: 'Quick check, not a lab test. This is not a health or safety certification. For drinking water safety, use a certified lab.' }
+        ]},
+        { id: 'fixtures', title: 'Fixtures and valves', fields: [
+          { id: 'fixtures', label: 'Room or fixture', type: 'group', addLabel: '+ Add a room or fixture',
+            presets: ['Kitchen sink and faucet', 'Bathroom 1 sink and faucet', 'Toilets', 'Tubs and showers', 'Laundry', 'Water heater', 'Main shutoff',
+              'Drains', 'Outdoor hose bibs', 'Sewer cleanout', 'Gas line', 'Visible leaks'],
+            fields: [
+              { id: 'valves', label: 'Shutoff valves work (under sink, behind toilet)', short: 'Shutoff valves work', type: 'yesno', bad: ['No'] },
+              { id: 'leak', label: 'Leaks', type: 'choice', options: ['None', 'Minor', 'Active'], bad: ['Minor', 'Active'] },
+              { id: 'cond', label: 'Condition', type: 'choice', options: ['Good', 'Fair', 'Needs work'], bad: ['Needs work'] },
+              { id: 'note', label: 'Note', type: 'text' },
+              { id: 'photo', label: 'Photo', type: 'photos', max: 1 }
+            ] }
+        ]},
+        { id: 'wh', title: 'Water heater quick look', fields: [
+          { id: 'wh_age', label: 'Age', type: 'number', unit: 'years', half: true },
+          { id: 'wh_tpr', label: 'Relief valve (TPR)', type: 'passfail' },
+          { id: 'wh_leak', label: 'Signs of leaks', type: 'choice', options: ['None', 'Minor', 'Active'], bad: ['Minor', 'Active'] },
+          { id: 'wh_note', label: 'Note', type: 'text' },
+          { id: 'wh_link', type: 'link', form: 'wh-agreement', text: 'After you send this, you can start the Water heater plan for them in one tap.' }
+        ]},
+        { id: 'summary', title: 'Summary', fields: [
+          { id: 'needs', label: 'Needs work', type: 'needswork', fillTo: 'recs' },
+          { id: 'recs', label: 'Recommended fixes', type: 'textarea' },
+          { id: 'next_date', label: 'Next inspection', type: 'date', auto: 'year', remind: 'Annual inspection due' }
+        ]},
+        { id: 'plan', title: 'Annual inspection plan', optional: true, toggle: 'Offer the yearly plan', prices: true, fields: [
+          { id: 'ai_plan', type: 'pricegrid', label: 'Plan', cols: [{ id: 'year', label: 'Per year' }], unit: '/ year',
+            rows: [{ id: 'basic', label: 'BASIC', sub: '1 inspection a year' }, { id: 'plus', label: 'PLUS', sub: '2 inspections a year' }],
+            note: 'Prices are per home.' },
+          { id: 'ai_want', label: 'Want the plan?', type: 'choice', options: ['Yes, sign me up', 'Not now'] }
         ]}
       ]
     },
