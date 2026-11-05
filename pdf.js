@@ -99,6 +99,7 @@
     function field(f) {
       const v = vals[f.id];
       switch (f.type) {
+        case 'checkbox': choiceLine(f.label, ['Yes'], v ? ['Yes'] : []); break;
         case 'choice': choiceLine(f.label, f.options, v ? [v] : []); break;
         case 'multi': choiceLine(f.label, f.options, v || []); break;
         case 'static': {

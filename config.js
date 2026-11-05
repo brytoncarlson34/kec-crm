@@ -110,7 +110,7 @@ window.APP_CONFIG = {
 
     {
       /* shared by Plumbing and HVAC (packs). byPack swaps the checklist for that trade. */
-      id: 'signoff', pack: 'plumbing', packs: ['plumbing', 'hvac', 'solar'], icon: 'check',
+      id: 'signoff', pack: 'all', icon: 'check',
       title: 'Job Completion Sign-Off', short: 'Job sign-off',
       blurb: 'Customer signs that the job is done right.',
       sections: [
@@ -130,6 +130,21 @@ window.APP_CONFIG = {
         ]},
         { title: 'Customer OK', fields: [
           { id: 'happy', label: 'Happy with the work?', type: 'choice', options: ['Yes', 'Not yet, see notes'] }
+        ]}
+      ]
+    },
+
+
+    {
+      id: 'receipt', pack: 'all', icon: 'receipt',
+      title: 'Receipt', short: 'Receipt',
+      blurb: 'What they paid and for what.',
+      sections: [
+        { title: 'Payment', fields: [
+          { id: 'receipt_no', label: 'Receipt #', type: 'text', half: true, auto: 'receipt' },
+          { id: 'paid_for', label: 'Paid for', type: 'textarea' },
+          { id: 'amount', label: 'Amount', type: 'money', half: true },
+          { id: 'pay_method', label: 'Paid by', type: 'choice', options: ['Cash', 'Check', 'Card', 'Other'] }
         ]}
       ]
     },
