@@ -14,8 +14,9 @@ try { const hp = window.MT && MT.allPacks && MT.allPacks().find(p => p.id === 'h
 /* Knockout Forms app config.
    Business branding and the list of forms live here, so a new form is one more entry
    in FORMS and a new business is a new BUSINESS block. Later this file becomes one
-   "pack" inside the shared CRM. pack: 'plumbing' (or 'hvac') shows only when that trade is on; pack: 'all' (Estimate,
-   Invoice) shows for every trade, so a solar rep can send them too. The business look here is the Plumbing
+   "pack" inside the shared CRM. pack / packs: which trades can use the form. A form whose packs are all off still shows in
+   Forms settings (switched off) so a shop can turn it on; it stays hidden from Start until then.
+   pack: 'all' (Estimate, Invoice) is on for every trade. Sign-off and Warranty include solar. The business look here is the Plumbing
    pack default; the business config (mt_biz) overrides it. */
 window.APP_CONFIG = {
   business: {
@@ -109,7 +110,7 @@ window.APP_CONFIG = {
 
     {
       /* shared by Plumbing and HVAC (packs). byPack swaps the checklist for that trade. */
-      id: 'signoff', pack: 'plumbing', packs: ['plumbing', 'hvac'], icon: 'check',
+      id: 'signoff', pack: 'plumbing', packs: ['plumbing', 'hvac', 'solar'], icon: 'check',
       title: 'Job Completion Sign-Off', short: 'Job sign-off',
       blurb: 'Customer signs that the job is done right.',
       sections: [
@@ -134,7 +135,7 @@ window.APP_CONFIG = {
     },
 
     {
-      id: 'warranty', pack: 'plumbing', icon: 'shield',
+      id: 'warranty', pack: 'plumbing', packs: ['plumbing', 'solar', 'hvac'], icon: 'shield',
       title: 'Warranty Card', short: 'Warranty',
       blurb: "What's covered and for how long.",
       sections: [
