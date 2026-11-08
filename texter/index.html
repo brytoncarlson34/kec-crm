@@ -1,0 +1,203 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Pilot texter</title><style>
+body{font-family:-apple-system,system-ui,sans-serif;margin:0;padding:12px;background:#f6f6f4;color:#111}
+h1{font-size:20px;margin:4px 0}.note{font-size:13px;color:#555;margin:0 0 8px}
+#prog{position:sticky;top:0;background:#f6f6f4;font-size:16px;font-weight:700;padding:8px 0;z-index:2}
+.r{background:#fff;border-radius:12px;padding:12px;margin:10px 0;box-shadow:0 1px 2px #0001}.r.done{opacity:.45}
+.top{display:flex;align-items:center;gap:10px}.ck input{width:28px;height:28px}.n{flex:1;font-size:17px;font-weight:600}.t{font-size:12px;color:#777;font-weight:400}
+.cf{font-size:11px;padding:2px 6px;border-radius:6px;font-weight:600;background:#fff3c4;margin-left:4px}
+.btns{display:flex;gap:8px;margin-top:10px}.go{flex:2;text-align:center;background:#1a7f37;color:#fff;text-decoration:none;font-size:18px;font-weight:700;padding:14px;border-radius:10px}
+.call{flex:1;text-align:center;border:2px solid #1a7f37;color:#1a7f37;text-decoration:none;font-weight:700;padding:12px;border-radius:10px}
+.cps{display:flex;gap:8px;margin-top:8px}.cp{flex:1;background:#fff;border:1px solid #bbb;border-radius:8px;font-size:14px;padding:10px}
+details{font-size:13px;margin-top:8px}pre{white-space:pre-wrap;background:#f6f6f4;padding:8px;border-radius:8px;margin:6px 0 0}
+</style></head><body><h1>Free pilot texter</h1>
+<p class="note">Tap Text, check it, hit send, come back and tick Sent. Or Copy number, then Copy text. Attach the pilot one-pager in Messages. 8am to 8pm only. If anyone says STOP, don't text them again.</p>
+<div id="prog"></div><div id="list"></div>
+<script>
+// Add more shops here: shop, trade, phone (10 digits), first (owner first name or ""), word (trade word), confirm (true = double check number)
+const SHOPS=[
+{
+"shop": "Bales Bottom Line Roofing Svc",
+"trade": "Roofing",
+"phone": "6615888495",
+"first": "Tony",
+"word": "roofing",
+"confirm": false
+},
+{
+"shop": "Zubia Roofing",
+"trade": "Roofing",
+"phone": "6618618454",
+"first": "Raul",
+"word": "roofing",
+"confirm": false
+},
+{
+"shop": "Central Cal Roofing",
+"trade": "Roofing",
+"phone": "6615872400",
+"first": "Andy",
+"word": "roofing",
+"confirm": false
+},
+{
+"shop": "Cisneros Brothers Plumbing Electrical Heating & Air",
+"trade": "HVAC/Plumbing/Electrical",
+"phone": "6617680616",
+"first": "",
+"word": "HVAC",
+"confirm": false
+},
+{
+"shop": "Witcher Electric Inc.",
+"trade": "Electrical",
+"phone": "6612430293",
+"first": "",
+"word": "electrical",
+"confirm": false
+},
+{
+"shop": "Crespo Roofing Inc",
+"trade": "Roofing",
+"phone": "6618618151",
+"first": "",
+"word": "roofing",
+"confirm": true
+},
+{
+"shop": "Mendoza's HVAC & Electrical Inc.",
+"trade": "HVAC/Electrical",
+"phone": "6615784215",
+"first": "Gerardo",
+"word": "HVAC",
+"confirm": false
+},
+{
+"shop": "Star Electric",
+"trade": "Electrical",
+"phone": "6615894117",
+"first": "Mark",
+"word": "electrical",
+"confirm": false
+},
+{
+"shop": "Hawley AC & Heating",
+"trade": "HVAC",
+"phone": "6612031874",
+"first": "",
+"word": "HVAC",
+"confirm": false
+},
+{
+"shop": "Pro1Air & Construction",
+"trade": "HVAC/Plumbing/Remodel",
+"phone": "6617655000",
+"first": "",
+"word": "HVAC",
+"confirm": false
+},
+{
+"shop": "Sunspot Energy",
+"trade": "Solar",
+"phone": "6615648264",
+"first": "",
+"word": "solar",
+"confirm": false
+},
+{
+"shop": "Solara Energy LLC",
+"trade": "Solar/Electrical/Roofing",
+"phone": "6616901761",
+"first": "",
+"word": "solar",
+"confirm": false
+},
+{
+"shop": "Jeff Periera Home Energy Inc.",
+"trade": "Solar/Electrical",
+"phone": "6614545568",
+"first": "Jeff",
+"word": "solar",
+"confirm": false
+},
+{
+"shop": "Luna Electric Inc",
+"trade": "Electrical",
+"phone": "6614618042",
+"first": "",
+"word": "electrical",
+"confirm": false
+},
+{
+"shop": "All Pro Plumbing Heating and Air",
+"trade": "Plumbing/HVAC",
+"phone": "6618639242",
+"first": "",
+"word": "plumbing",
+"confirm": false
+},
+{
+"shop": "Seibert Roofing Co",
+"trade": "Roofing",
+"phone": "6613667486",
+"first": "Art",
+"word": "roofing",
+"confirm": true
+},
+{
+"shop": "United Roofing",
+"trade": "Roofing",
+"phone": "6618343329",
+"first": "Darren",
+"word": "roofing",
+"confirm": true
+},
+{
+"shop": "Eagle Contracting Services",
+"trade": "GC/Roofing",
+"phone": "6616332778",
+"first": "Doug",
+"word": "contracting",
+"confirm": true
+},
+{
+"shop": "Earl Bennett Roofing",
+"trade": "Roofing",
+"phone": "6613254715",
+"first": "Earl",
+"word": "roofing",
+"confirm": true
+},
+{
+"shop": "Garry Foss Roofing Co",
+"trade": "Roofing",
+"phone": "6613669507",
+"first": "Garry",
+"word": "roofing",
+"confirm": true
+},
+{
+"shop": "Fuzion Energy",
+"trade": "Solar",
+"phone": "6612439934",
+"first": "",
+"word": "solar",
+"confirm": false
+}
+];
+const LINK='https://brytoncarlson34.github.io/kec-crm/musthaves/';
+const msg=s=>`Hey ${s.first||'there'}, this is Bryton in Bakersfield. I help local ${s.word} shops get more booked jobs. I'm taking on a few shops for a free 30-day pilot: I run your posts and lead follow-up and set you up with a simple CRM. No card, no contract, never a cut of your jobs. If it doesn't bring you work, it just ends. One-pager attached. Want in? This takes 2 minutes: ${LINK}`;
+const android=/android/i.test(navigator.userAgent);
+const smsHref=s=>'sms:+1'+s.phone+(android?'?':'&')+'body='+encodeURIComponent(msg(s));
+const fmt=p=>`(${p.slice(0,3)}) ${p.slice(3,6)}-${p.slice(6)}`;
+const KEY='pilotTexterSent';let sent=JSON.parse(localStorage.getItem(KEY)||'{}');
+const esc=t=>t.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function copy(t,b){(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).catch(()=>{const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();document.execCommand('copy');a.remove()}).finally(()=>{const o=b.textContent;b.textContent='Copied';setTimeout(()=>b.textContent=o,1200)})}
+function prog(){document.getElementById('prog').textContent=Object.values(sent).filter(Boolean).length+' of '+SHOPS.length+' sent'}
+document.getElementById('list').innerHTML=SHOPS.map((s,i)=>`<div class="r${sent[s.phone]?' done':''}" id="r${i}"><div class="top"><label class="ck"><input type="checkbox" data-i="${i}"${sent[s.phone]?' checked':''} aria-label="Sent"></label><div class="n">${esc(s.shop)}${s.confirm?'<span class="cf">confirm number</span>':''}<div class="t">${esc(s.trade)} · ${fmt(s.phone)}${s.first?' · '+esc(s.first):''}</div></div></div>
+<div class="btns"><a class="go" href="${esc(smsHref(s))}">Text</a><a class="call" href="tel:+1${s.phone}">Call</a></div>
+<div class="cps"><button class="cp" data-c="n" data-i="${i}">1. Copy number</button><button class="cp" data-c="t" data-i="${i}">2. Copy text</button></div>
+<details><summary>See text</summary><pre>${esc(msg(s))}</pre></details></div>`).join('');
+document.addEventListener('change',e=>{const i=e.target.dataset.i;if(i==null)return;const s=SHOPS[i];sent[s.phone]=e.target.checked;localStorage.setItem(KEY,JSON.stringify(sent));document.getElementById('r'+i).classList.toggle('done',e.target.checked);prog()});
+document.addEventListener('click',e=>{const b=e.target.closest('.cp');if(!b)return;const s=SHOPS[b.dataset.i];copy(b.dataset.c=='n'?s.phone:msg(s),b)});
+prog();
+</script></body></html>
