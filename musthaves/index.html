@@ -1,0 +1,104 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Your Must-Haves · Kern County Energy Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&display=swap" rel="stylesheet">
+<script>window.MUSTHAVES_ENDPOINT="";</script><!-- DEPLOY: set to the Apps Script web app URL (see DEPLOY.md) -->
+<script src="jspdf.umd.min.js"></script>
+<style>
+:root{--n:#0f3a5f;--g:#f2a33a;--b:#9aa7b4;--f:#f4f7fa}
+*{box-sizing:border-box}body{margin:0;font:16px/1.4 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:#e9eef3;color:#222}
+.wrap{max-width:640px;margin:0 auto;padding:12px 12px 32px}
+header{background:var(--n);color:#fff;border-radius:10px;padding:16px 18px}header h1{margin:0;font-size:26px}header p{margin:4px 0 0;color:#ffd27a;font-size:14px}
+.card{background:#fff;border-radius:10px;padding:16px;margin-top:12px;border-top:3px solid var(--g)}
+label.q{display:block;font-weight:700;color:var(--n);margin:14px 0 6px}label.q:first-child{margin-top:0}
+input[type=text],input[type=date],textarea{width:100%;font-size:16px;padding:10px;border:1px solid var(--b);background:var(--f);border-radius:8px}
+textarea{min-height:76px}.chk{display:flex;flex-wrap:wrap;gap:8px 16px}.chk label{display:flex;align-items:center;gap:6px;min-height:36px}
+input[type=checkbox]{width:22px;height:22px;accent-color:var(--n)}
+.row{display:flex;gap:8px;align-items:center;margin-bottom:8px}.row span{width:18px}
+.tabs{display:flex;gap:6px;margin:8px 0}.tabs button{flex:1;padding:10px;border:2px solid var(--n);background:#fff;color:var(--n);border-radius:8px;font-size:16px;font-weight:700}
+.tabs button.on{background:var(--n);color:#fff}
+#pad{width:100%;height:170px;border:1px dashed var(--b);background:var(--f);border-radius:8px;touch-action:none;display:block}
+.sm{background:#fff;border:1px solid var(--b);border-radius:8px;padding:8px 14px;font-size:15px;margin-top:6px}
+#preview{font-family:'Dancing Script','Brush Script MT','Segoe Script',cursive;font-size:42px;min-height:70px;border-bottom:2px solid var(--n);padding:4px 6px;color:#0b2540}
+.terms{font-size:13.5px;color:#333;border-top:2px solid var(--g);padding-top:10px;margin-top:12px}
+.agree{display:flex;gap:10px;align-items:flex-start;font-weight:700;margin-top:10px}
+.go{width:100%;padding:16px;margin-top:14px;font-size:18px;font-weight:800;background:var(--g);color:#1b1b1b;border:0;border-radius:10px}
+.err{color:#b00020;font-size:14px;margin-top:4px;display:none}.bad .err{display:block}.bad input,.bad textarea,.bad #pad{border-color:#b00020}
+.note{font-size:13px;color:#555}#adoptedOk{color:#1b7a3a;font-weight:700;display:none}
+footer{text-align:center;color:#555;font-size:13px;margin-top:16px}
+#done{display:none}#done h2{color:var(--n);margin-top:0}
+</style></head><body><div class="wrap">
+<header><h1>Your Must-Haves*</h1><p>Bryton Carlson · Kern County Energy Guide</p></header>
+<form id="f" novalidate>
+<div class="card">
+<div data-req="services_areas"><label class="q" for="services_areas">1. Services and areas to push first</label><textarea id="services_areas"></textarea><div class="err">Please fill this in.</div></div>
+<div data-req="lead_sources"><label class="q">2. How leads come in today</label><div class="chk"><label><input type="checkbox" name="leads" value="Phone calls">Phone calls</label><label><input type="checkbox" name="leads" value="Website">Website</label><label><input type="checkbox" name="leads" value="Referrals">Referrals</label><label><input type="checkbox" name="leads" value="Social media">Social media</label><label><input type="checkbox" name="leads" value="Google">Google</label><label><input type="checkbox" name="leads" value="Yelp">Yelp</label><label><input type="checkbox" name="leads" value="Home warranty">Home warranty</label><label><input type="checkbox" name="leads" value="Other">Other</label></div><input type="text" id="lead_other_text" placeholder="Other (where else?)" style="margin-top:6px"><input type="hidden" id="lead_sources"><div class="err">Please pick at least one.</div></div>
+<label class="q">3. What the office tracks now</label>
+<div class="chk"><label><input type="checkbox" name="tracks" value="Jobs">Jobs</label><label><input type="checkbox" name="tracks" value="Quotes">Quotes</label><label><input type="checkbox" name="tracks" value="Techs">Techs</label><label><input type="checkbox" name="tracks" value="Follow-ups">Follow-ups</label><label><input type="checkbox" name="tracks" value="Other" id="trOther">Other</label></div>
+<input type="text" id="tracks_other_text" placeholder="Other (what else?)" style="margin-top:6px">
+<div data-req="crm_want_1"><label class="q">4. What do you want your CRM to do?</label><p class="note">List anything at all. If you need it, I'll build it, fix it, or change it to fit how your shop works.</p>
+<div class="row"><span>1.</span><input type="text" id="crm_want_1" placeholder="Example: on-the-way texts to customers"></div><div class="err">Please give at least one.</div>
+<div class="row"><span>2.</span><input type="text" id="crm_want_2" placeholder="Example: track every quote until it closes"></div><div class="row"><span>3.</span><input type="text" id="crm_want_3" placeholder="Anything else"></div></div>
+<div data-req="approver"><label class="q" for="approver">5. Who approves posts (name and best contact)</label><input type="text" id="approver"><div class="err">Please fill this in.</div></div>
+<div data-req="shop"><label class="q" for="shop">Shop</label><input type="text" id="shop" autocomplete="organization"><div class="err">Please fill this in.</div></div>
+<div data-req="contact"><label class="q" for="contact">Contact (name and phone or email)</label><input type="text" id="contact"><div class="err">Please fill this in.</div></div>
+<div data-req="date"><label class="q" for="date">Date</label><input type="date" id="date"><div class="err">Please pick a date.</div></div>
+</div>
+<div class="card">
+<label class="q">Sign to start the free pilot*</label>
+<p class="terms"><b>* Free pilot terms.</b> For 30 days from the date signed, Bryton Carlson (Kern County Energy Guide) runs marketing and lead follow-up for your shop with a CRM set up around how you work. There is no setup fee, no monthly fee and no lead fee during the pilot, and no card is needed. You approve posts, offers and claims before anything goes public, and you handle quotes, pricing, contracts, permits and the work itself. Your customer data stays yours. After 30 days, you only pay if it worked and we both agree on a flat fee (per accepted lead or monthly) in a separate written agreement with a set price, cap and start date. Never a percentage of job value, no automatic charges and no back-billing for pilot leads. Either side can end the pilot anytime, and if it doesn't work, it just ends.</p>
+<div data-req="agree"><label class="agree"><input type="checkbox" id="agree">I agree to the free pilot terms*</label><div class="err">Please check the box to agree.</div></div>
+<div data-req="signer"><label class="q" for="signer">Shop owner or manager full name</label><input type="text" id="signer" autocomplete="name"><div class="err">Please type your full name.</div></div>
+<div data-req="sig"><label class="q">Signature</label>
+<div class="tabs"><button type="button" id="tDraw" class="on">Draw</button><button type="button" id="tAdopt">Adopt</button></div>
+<div id="drawBox"><canvas id="pad"></canvas><button type="button" class="sm" id="clr">Clear</button> <span class="note">Sign with your finger.</span></div>
+<div id="adoptBox" style="display:none"><div id="preview"></div><button type="button" class="sm" id="adoptBtn">Adopt and sign</button> <span id="adoptedOk">Adopted ✓</span><p class="note">Uses the name you typed above.</p></div>
+<div class="err">Please sign or adopt a signature.</div></div>
+<label class="q" for="sig_date">Signature date</label><input type="date" id="sig_date">
+<p class="note">Countersigned by Bryton Carlson will be added on his copy.</p>
+<button class="go" type="submit" id="go">Sign and send</button>
+</div></form>
+<div id="done" class="card"><h2>Thanks, you're signed up!</h2><p id="doneMsg">Bryton has your answers and signature. A copy is downloading to your phone.</p><button class="sm" id="dl">Download my signed copy</button></div>
+<footer>(661) 747-3899 · bryton.hunt@gmail.com</footer>
+</div>
+<script>
+const $=id=>document.getElementById(id),today=(d=>new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10))(new Date());$('date').value=today;$('sig_date').value=today;
+// signature pad
+const pad=$('pad'),ctx=pad.getContext('2d');let drawn=false,drawing=false,last=null,mode='draw',adopted=null;
+function size(){const r=pad.getBoundingClientRect(),d=window.devicePixelRatio||1,img=drawn?pad.toDataURL():null;pad.width=r.width*d;pad.height=r.height*d;ctx.setTransform(d,0,0,d,0,0);ctx.lineWidth=2.6;ctx.lineCap=ctx.lineJoin='round';ctx.strokeStyle='#0b2540';if(img){const i=new Image();i.onload=()=>ctx.drawImage(i,0,0,r.width,r.height);i.src=img}}
+size();addEventListener('resize',size);
+const pt=e=>{const r=pad.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}};
+function start(p){drawing=true;last=p;ctx.beginPath();ctx.arc(p.x,p.y,1.2,0,7);ctx.fillStyle='#0b2540';ctx.fill();drawn=true}
+function move(p){if(!drawing)return;document.querySelector('[data-req=sig]').classList.remove('bad');ctx.beginPath();ctx.moveTo(last.x,last.y);ctx.lineTo(p.x,p.y);ctx.stroke();last=p;drawn=true}
+if(window.PointerEvent){pad.addEventListener('pointerdown',e=>{e.preventDefault();pad.setPointerCapture&&pad.setPointerCapture(e.pointerId);start(pt(e))});pad.addEventListener('pointermove',e=>{e.preventDefault();move(pt(e))});['pointerup','pointercancel','pointerleave'].forEach(t=>pad.addEventListener(t,()=>drawing=false))}
+else{pad.addEventListener('touchstart',e=>{e.preventDefault();start(pt(e.touches[0]))},{passive:false});pad.addEventListener('touchmove',e=>{e.preventDefault();move(pt(e.touches[0]))},{passive:false});pad.addEventListener('touchend',()=>drawing=false);pad.addEventListener('mousedown',e=>start(pt(e)));pad.addEventListener('mousemove',e=>move(pt(e)));addEventListener('mouseup',()=>drawing=false)}
+pad.addEventListener('touchmove',e=>e.preventDefault(),{passive:false});
+$('clr').onclick=()=>{ctx.clearRect(0,0,pad.width,pad.height);drawn=false};
+function tab(m){mode=m;$('tDraw').classList.toggle('on',m=='draw');$('tAdopt').classList.toggle('on',m=='adopt');$('drawBox').style.display=m=='draw'?'':'none';$('adoptBox').style.display=m=='adopt'?'':'none';$('preview').textContent=$('signer').value}
+$('tDraw').onclick=()=>tab('draw');$('tAdopt').onclick=()=>tab('adopt');
+$('signer').oninput=()=>{$('preview').textContent=$('signer').value;adopted=null;$('adoptedOk').style.display='none'};
+function adoptImg(name){const c=document.createElement('canvas');c.width=900;c.height=220;const x=c.getContext('2d');x.fillStyle='#0b2540';let fs=110;do{x.font=`600 ${fs}px 'Dancing Script','Brush Script MT','Segoe Script',cursive`;fs-=4}while(x.measureText(name).width>860&&fs>30);x.textBaseline='middle';x.fillText(name,20,115);return c.toDataURL('image/png')}
+$('adoptBtn').onclick=async()=>{const n=$('signer').value.trim();if(!n){$('signer').focus();$('signer').closest('[data-req]').classList.add('bad');return}try{await document.fonts.load("600 60px 'Dancing Script'")}catch(e){}adopted=adoptImg(n);$('adoptedOk').style.display='inline';document.querySelector('[data-req=sig]').classList.remove('bad')};
+// validate + submit
+let rec=null;
+function syncLeads(){const c=[...document.querySelectorAll('[name=leads]:checked')].map(x=>x.value);const o=$('lead_other_text').value.trim();if(o&&!c.includes('Other'))c.push('Other');$('lead_sources').value=c.map(x=>x=='Other'&&o?'Other ('+o+')':x).join(', ')}
+function validate(){syncLeads();let ok=true,first=null;const fail=k=>{const el=document.querySelector(`[data-req="${k}"]`);el.classList.add('bad');ok=false;first=first||el};document.querySelectorAll('.bad').forEach(e=>e.classList.remove('bad'));
+['services_areas','lead_sources','crm_want_1','approver','shop','contact','date','signer'].forEach(k=>{if(!$(k).value.trim())fail(k)});
+if(!$('agree').checked)fail('agree');if(mode=='draw'?!drawn:!adopted)fail('sig');if(first)first.scrollIntoView({behavior:'smooth',block:'center'});return ok}
+function pdf(r){const{jsPDF}=window.jspdf,d=new jsPDF({unit:'pt',format:'letter'}),W=612;let y=40;d.setFillColor(15,58,95);d.roundedRect(40,y,W-80,52,8,8,'F');d.setTextColor(255);d.setFont('helvetica','bold');d.setFontSize(22);d.text('Your Must-Haves*',58,y+33);d.setFontSize(10);d.setTextColor(255,210,122);d.text('Bryton Carlson · Kern County Energy Guide',W-58,y+33,{align:'right'});y+=78;
+const q=(t,v)=>{d.setTextColor(15,58,95);d.setFont('helvetica','bold');d.setFontSize(11.5);d.text(t,45,y);y+=15;d.setTextColor(30);d.setFont('helvetica','normal');d.setFontSize(10.5);const L=d.splitTextToSize(v||'-',W-90);d.text(L,45,y);y+=L.length*13+9};
+q('1. Services and areas to push first',r.services_areas);q('2. How leads come in today',r.lead_sources);q('3. What the office tracks now',r.tracks.join(', ')+(r.tracks_other_text?' ('+r.tracks_other_text+')':''));q('4. What you want the CRM to do',[r.crm_want_1,r.crm_want_2,r.crm_want_3].filter(Boolean).map((v,i)=>(i+1)+'. '+v).join('\n'));q('5. Who approves posts',r.approver);q('Shop / Contact / Date',r.shop+'  |  '+r.contact+'  |  '+r.date);
+d.setDrawColor(242,163,58);d.setLineWidth(1.5);d.line(45,y,W-45,y);y+=14;d.setFontSize(8.6);d.setTextColor(50);const T=d.splitTextToSize(document.querySelector('.terms').innerText,W-90);d.text(T,45,y);y+=T.length*11+8;d.setFont('helvetica','bold');d.setFontSize(10);d.text('[X] I agree to the free pilot terms*',45,y);y+=16;
+d.text('Shop owner or manager signature',45,y);d.addImage(r.signature_png,'PNG',45,y+4,260,64);d.line(45,y+70,330,y+70);d.setFont('helvetica','normal');d.setFontSize(9.5);d.text(r.signer_name+'  ·  signed '+r.sig_date+'  ('+r.signature_method+', '+r.signed_at+')',45,y+84);y+=104;
+d.setFont('helvetica','bold');d.text('Bryton Carlson, Kern County Energy Guide: Countersigned by Bryton Carlson will be added on his copy.',45,y);d.setFont('helvetica','normal');d.setFontSize(9);d.setTextColor(85);d.text('(661) 747-3899 · bryton.hunt@gmail.com',W/2,770,{align:'center'});return d}
+function fname(r){return 'Your-Must-Haves-Signed-'+(r.shop||'Shop').replace(/[^A-Za-z0-9]+/g,'-').replace(/^-|-$/g,'')+'.pdf'}
+$('f').onsubmit=async e=>{e.preventDefault();if(!validate())return;$('go').disabled=true;$('go').textContent='Sending...';
+const v=k=>$(k).value.trim();rec={action:'musthaves',services_areas:v('services_areas'),lead_sources:v('lead_sources'),tracks:[...document.querySelectorAll('[name=tracks]:checked')].map(c=>c.value),tracks_other_text:v('tracks_other_text'),crm_want_1:v('crm_want_1'),crm_want_2:v('crm_want_2'),crm_want_3:v('crm_want_3'),approver:v('approver'),shop:v('shop'),contact:v('contact'),date:v('date'),agreed_terms:true,signer_name:v('signer'),sig_date:v('sig_date')||today,signature_method:mode=='draw'?'drawn':'adopted',signature_png:mode=='draw'?pad.toDataURL('image/png'):adopted,signed_at:new Date().toISOString(),user_agent:navigator.userAgent};
+let doc,b64='';try{doc=pdf(rec);b64=doc.output('datauristring').split(',')[1]}catch(err){console.error(err)}
+let sent=false;const ep=window.MUSTHAVES_ENDPOINT;
+if(ep){try{const r=await fetch(ep,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({pdf_b64:b64},rec))});const j=await r.json();sent=!!j.ok}catch(err){sent=false}}
+$('f').style.display='none';$('done').style.display='block';window.scrollTo(0,0);
+$('doneMsg').textContent=sent?"Bryton has your answers and signature. Tap below to save your own signed copy.":"Your signed copy is downloading. Please text or email that PDF to Bryton at (661) 747-3899 or bryton.hunt@gmail.com so he has it.";
+window.__result={sent,hasPdf:!!doc};if(doc&&!sent)doc.save(fname(rec))};
+$('dl').onclick=()=>{try{pdf(rec).save(fname(rec))}catch(e){}};
+</script></body></html>
