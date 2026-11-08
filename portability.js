@@ -7,7 +7,7 @@
   const VERSION = 1;
   const FORMAT = 'kec-crm-backup';
   const WEEK = 7 * 24 * 60 * 60 * 1000;
-  const RAW_KEYS = ['mt_crm', 'mt_biz', 'mtf_recent', 'mtf_outbox', 'mtf_draft', 'mtf_invno', 'mt_files', 'mt_imports', 'mt_me', 'mt_lens', 'mt_pipe_mode', 'mt_cal_view', 'mt_flags', 'mt_qtpl'];
+  const RAW_KEYS = ['mt_crm', 'mt_biz', 'mtf_recent', 'mtf_outbox', 'mtf_draft', 'mtf_invno', 'mt_files', 'mt_imports', 'mt_me', 'mt_lens', 'mt_pipe_mode', 'mt_cal_view', 'mt_flags', 'mt_qtpl', 'mt_follow'];
   const PREF_KEYS = ['mt_me', 'mt_lens', 'mt_pipe_mode', 'mt_cal_view', 'mt_flags', 'mt_qtpl'];
   const LEAD_FIELDS = ['id', 'pack', 'created', 'updated', 'source', 'name', 'phone', 'email', 'address', 'owner_renter', 'need', 'consent', 'stage', 'next_step', 'next_date', 'appt', 'outcome', 'notes', 'rep', 'external_id', 'jobs'];
   const BASE_FIELDS = [
@@ -149,11 +149,16 @@
     });
     const forms = (Array.isArray(recent) ? recent.length : 0) + (Array.isArray(outbox) ? outbox.length : 0) + (draft ? 1 : 0);
     const imports = parseMaybe(data.raw.mt_imports, []);
+    const followStore = parseMaybe(data.raw.mt_follow, null) || {};
+    const estimateFollowups = Array.isArray(followStore.estimates) ? followStore.estimates.filter(e => e && !e.closed).length : 0;
+    const reviewRequests = Array.isArray(followStore.reviews) ? followStore.reviews.filter(r => r && !r.done).length : 0;
+    const members = Array.isArray(followStore.members) ? followStore.members.length : 0;
     return {
       leads: leads.length, jobs: jobs, notes: notes, followups: follow,
       checks: (crm.checks || []).length, documents: (crm.docs || []).length,
       forms: forms, files: files && typeof files === 'object' ? Object.keys(files).length : 0,
       imports: Array.isArray(imports) ? imports.length : 0,
+      estimateFollowups: estimateFollowups, reviewRequests: reviewRequests, members: members,
       trades: trades
     };
   }
@@ -331,6 +336,13 @@
     });
     return out;
   }
+  function mergeFollow(a, b, conflicts) {
+    if (a == null && b == null) return null;
+    if (a == null || isEmpty(a)) return clone(b);
+    if (b == null || isEmpty(b)) return clone(a);
+    const fileNewer = String(b.updatedAt || '') > String(a.updatedAt || '');
+    return mergeAny(a, b, 'follow', fileNewer, conflicts);
+  }
   function mergeForms(phoneRaw, fileRaw, conflicts) {
     const recent = mergeById(parseMaybe(phoneRaw.mtf_recent, []), parseMaybe(fileRaw.mtf_recent, []), x => x && x.id, conflicts, 'form');
     const outbox = mergeById(parseMaybe(phoneRaw.mtf_outbox, []), parseMaybe(fileRaw.mtf_outbox, []), x => x && x.id, conflicts, 'form');
@@ -421,6 +433,8 @@
       ['mt_imports', mergedImports(phone.raw.mt_imports, file.raw.mt_imports)]
     ];
     PREF_KEYS.forEach(k => pairs.push([k, phone.raw[k] != null ? phone.raw[k] : file.raw[k]]));
+    const follow = mergeFollow(parseMaybe(phone.raw.mt_follow, null), parseMaybe(file.raw.mt_follow, null), conflicts);
+    pairs.push(['mt_follow', follow == null ? null : JSON.stringify(follow)]);
     const cals = mergeById(phone.cals || [], file.cals || [], x => x && x.id, conflicts, 'calendar');
     pairs.push(['mt_cals', (phone.cals == null && file.cals == null) ? null : JSON.stringify(cals)]);
     const shop = !isEmpty(phone.shop) ? phone.shop : file.shop;
@@ -538,6 +552,7 @@
     try { localStorage.setItem('mt_port_log', JSON.stringify({ at: Date.now(), checksum: sum })); } catch (e) {}
   }
   function refresh() {
+    try { if (window.FOLLOW && FOLLOW.refresh) FOLLOW.refresh(); } catch (e) {}
     try {
       const vx = document.getElementById('v-x');
       if (vx && vx.classList.contains('on') && window.KF && KF.render) { KF.render(); return; }
@@ -646,6 +661,9 @@
       'Jobs: ' + (c.jobs || 0),
       'Notes: ' + (c.notes || 0),
       'Follow-ups: ' + (c.followups || 0),
+      'Unsigned estimates: ' + (c.estimateFollowups || 0),
+      'Review requests: ' + (c.reviewRequests || 0),
+      'Members: ' + (c.members || 0),
       'Energy checks: ' + (c.checks || 0),
       'Documents: ' + (c.documents || 0),
       'Form records: ' + (c.forms || 0),
@@ -654,6 +672,7 @@
       '',
       'Files',
       'leads.csv is one row per lead. jobs.csv, follow-ups.csv, notes.csv, energy-checks.csv, documents.csv and forms.csv link back with lead_id or id.',
+      'shop-followups.csv is the unsigned estimates, review requests and members saved on this phone. backup.json is the full copy, including the texts and the Google review link.',
       'settings.csv is the business setup. Logo image data stays in backup.json.',
       'forms.csv leaves out PDF bytes. Those bytes, when they were still on this phone, are in backup.json.',
       'imported-records.csv lists screenshots brought over from another app. The pictures themselves are in backup.json, not in the CSV.',
@@ -684,6 +703,11 @@
       .concat((Array.isArray(outbox) ? outbox : []).map(r => Object.assign({ kind: 'outbox' }, flat(r))));
     if (draft) forms.push(Object.assign({ kind: 'draft' }, flat(draft)));
     const biz = parseMaybe(backup.data.raw.mt_biz, {});
+    const followStore = parseMaybe(backup.data.raw.mt_follow, null) || {};
+    const followRows = []
+      .concat((followStore.estimates || []).map(e => ({ kind: 'estimate', id: e.id || '', name: e.customer || '', phone: e.phone || '', email: e.email || '', detail: [e.title, e.total, e.options, e.what].filter(Boolean).join(' · '), date: e.sent || '', status: e.closed ? 'closed' : 'open' })))
+      .concat((followStore.reviews || []).map(r => ({ kind: 'review', id: r.id || '', name: r.customer || '', phone: r.phone || '', email: r.email || '', detail: r.work || '', date: r.due || r.sent || '', status: r.done ? 'sent' : 'queued' })))
+      .concat((followStore.members || []).map(m => ({ kind: 'member', id: m.id || '', name: m.customer || '', phone: m.phone || '', email: m.email || '', detail: [m.plan || m.source, m.renew ? 'renews ' + m.renew : ''].filter(Boolean).join(' · '), date: m.next || m.start || '', status: m.sms === false ? 'no texts' : 'text ok' })));
     const settings = [];
     (function walk(obj, prefix) {
       if (!obj || typeof obj !== 'object') { settings.push({ key: prefix, value: obj == null ? '' : obj }); return; }
@@ -710,7 +734,8 @@
       { name: 'documents.csv', text: toCsv(docs, colsOf(docs, ['id', 'lead_id', 'formId', 'title', 'total', 'ts'])) },
       { name: 'forms.csv', text: toCsv(forms, colsOf(forms, ['kind', 'id', 'title', 'customer', 'phone', 'email', 'total', 'status', 'leadId', 'has_pdf', 'pdf_bytes'])) },
       { name: 'settings.csv', text: toCsv(settings, ['key', 'value']) },
-      { name: 'imported-records.csv', text: toCsv(importRows, ['id', 'created', 'file', 'name', 'phone', 'contacts', 'has_image', 'text_reading']) }
+      { name: 'imported-records.csv', text: toCsv(importRows, ['id', 'created', 'file', 'name', 'phone', 'contacts', 'has_image', 'text_reading']) },
+      { name: 'shop-followups.csv', text: toCsv(followRows, ['kind', 'id', 'name', 'phone', 'email', 'detail', 'date', 'status']) }
     ];
   }
   function buildArchive() {
@@ -783,7 +808,7 @@
   }
   function countBlock(title, c) {
     return '<div class="card"><b>' + esc(title) + '</b><div class="meta2" style="margin-top:6px">' +
-      [c.leads + ' leads', c.jobs + ' jobs', c.followups + ' follow-ups', c.notes + ' notes', c.checks + ' energy checks', c.documents + ' documents', c.forms + ' form records', (c.imports || 0) + ' imported screenshots'].join(' · ') +
+      [c.leads + ' leads', c.jobs + ' jobs', c.followups + ' follow-ups', (c.estimateFollowups || 0) + ' unsigned estimates', (c.reviewRequests || 0) + ' review requests', (c.members || 0) + ' members', c.notes + ' notes', c.checks + ' energy checks', c.documents + ' documents', c.forms + ' form records', (c.imports || 0) + ' imported screenshots'].join(' · ') +
       '</div><div class="meta2">Trades: ' + esc(tradeLine(c)) + '</div></div>';
   }
   function showRestore(backup) {
