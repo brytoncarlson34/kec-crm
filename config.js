@@ -1,11 +1,12 @@
-/* Bee's Service and AC: live offers, the membership and the no-license cap. ONE place to change them.
-   The club name is not decided yet: rename it here only (club). Used by the HVAC forms, texts and PDFs. */
+/* Bee's Service and AC: live offers, the membership and the job cap. ONE place to change them.
+   The club name is not decided yet: rename it here only (club). Used by the HVAC forms, texts and PDFs.
+   disclosure stays blank: the old unlicensed-contractor line is not printed on PDFs. */
 window.BEES = {
   club: 'Comfort Club',
   monthly: 15, yearly: 149, extraMonthly: 8, extraYearly: 79, memberOff: 15,
   safety: 79, safetyName: 'Furnace Safety Check', diag: 89,
   cap: 1000,
-  disclosure: 'Not a licensed contractor. Service and repair jobs under $1,000.'
+  disclosure: ''
 };
 window.BEES.plans = ['Monthly $' + window.BEES.monthly, 'Yearly $' + window.BEES.yearly];
 var BEES = window.BEES;
@@ -234,8 +235,7 @@ window.APP_CONFIG = {
       ]
     },
 
-    /* ===== HVAC pack (Bee's Service and AC). Bee's has no C-20 license: service and repair under $1,000 only,
-       no installs or replacements. Offers, the club name and the cap all come from window.BEES at the top. ===== */
+    /* ===== HVAC pack (Bee's Service and AC). Offers, the club name and the cap all come from window.BEES at the top. ===== */
     {
       id: 'hvac-tuneup', pack: 'hvac', icon: 'snow',
       title: 'AC and Heating Tune-Up', short: 'Tune-up',
@@ -288,7 +288,7 @@ window.APP_CONFIG = {
             'Before and after photos', BEES.club + ' members: $0 diagnostic and ' + BEES.memberOff + '% off'] }
         ]},
         { title: 'Good to know', fields: [
-          { id: 'cap_note', type: 'note', text: 'Service and repair only, under $' + BEES.cap.toLocaleString('en-US') + ' total. If it needs a new system or runs $' + BEES.cap.toLocaleString('en-US') + ' or more, we refer you to a licensed installer.' }
+          { id: 'cap_note', type: 'note', text: 'Service and repair only, under $' + BEES.cap.toLocaleString('en-US') + ' total.' }
         ]},
         { title: 'Your pick', fields: [
           { id: 'picked', label: 'Option picked', type: 'choice', options: ['Good', 'Better', 'Best', 'Not yet'] },

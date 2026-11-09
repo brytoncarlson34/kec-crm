@@ -297,7 +297,7 @@
     for (let p = 1; p <= pages; p++) {
       doc.setPage(p);
       doc.setDrawColor(...P); doc.setLineWidth(1); doc.line(M, H - 44, W - M, H - 44);
-      const disc = clean(brand.disclosure || '');  /* HVAC (Bee's): Not a licensed contractor line on every page */
+      const disc = clean(brand.disclosure || '');  /* optional footer line; blank leaves the thanks line and page number in place */
       font('bold', 9); set(A); doc.text(clean(brand.thanks || ('Thanks for choosing ' + brand.name + '.')), W / 2, H - (disc ? 32 : 30), { align: 'center' });
       if (disc) { font('bold', 8); set(INK); doc.text(disc, W / 2, H - 21, { align: 'center' }); }
       font('normal', 7.5); set(GRAY); doc.text('Form ' + clean(vals._id || '') + '   |   Page ' + p + ' of ' + pages, W / 2, H - (disc ? 11 : 18), { align: 'center' });
