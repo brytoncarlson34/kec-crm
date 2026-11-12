@@ -1,5 +1,5 @@
 {
-  "note": "Tutorial list for the CRM. Edit this file next to index.html to add a video link (https only). No rebuild needed. Leave url empty to show Coming soon. trade: solar or plumbing shows only when that trade is on.",
+  "note": "Tutorial list for the CRM. Edit this file next to index.html to add a video link (https only). No rebuild needed. Leave url empty to show Coming soon. group that matches a pack id (solar, plumbing, hvac, ...) is hidden when that trade is off; start and everyday stay for everyone. trade: one pack. trades: [..] for videos that fit some packs. Tabs (id tabs) hides when only one trade is on.",
   "items": [
     {
       "id": "full",
@@ -124,7 +124,7 @@
       "id": "tabs",
       "group": "everyday",
       "title": "Switch between trades",
-      "desc": "The All, Solar and Plumbing tabs and what each shows.",
+      "desc": "The All and trade tabs and what each shows when more than one trade is on.",
       "length": "1 min",
       "url": ""
     },
