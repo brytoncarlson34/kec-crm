@@ -1,17 +1,30 @@
 /* Bee's Service and AC: live offers and the membership. ONE place to change them.
-   The club name is not decided yet: rename it here only (club). Used by the HVAC forms, texts and PDFs. */
-window.BEES = {
-  club: 'Comfort Club',
-  monthly: 15, yearly: 149, extraMonthly: 8, extraYearly: 79, memberOff: 15,
-  /* v2.7 (approved 2026-11-19): in town (Zone 1) / out of town (Zone 2). $79 is only the Keeper Plan join price (v2.7.1). */
-  safety: 99, safety2: 129, safetyName: 'Furnace Safety Check', diag: 129, diag2: 169,
-  /* v2.7: no footer line and no $1,000 warnings. Big jobs get the partner line per option (quote.js partnerOf) */
-  cap: 0,
-  disclosure: ''
-};
-window.BEES.plans = ['Monthly $' + window.BEES.monthly, 'Yearly $' + window.BEES.yearly];
+   v2.7.1: the membership is the Bee's Keeper Plan (three tiers, in town and out of town prices). Every price comes from the
+   presets in src/plans.json (window.KP_PLANS), or the shop's own copy saved on the phone (mt_keeper_plans). */
+window.BEES = (function () {
+  let P = window.KP_PLANS || {};
+  try { const o = JSON.parse(localStorage.getItem('mt_keeper_plans') || 'null'); if (o && Array.isArray(o.tiers) && o.tiers.length) P = o; } catch (e) {}
+  const T = id => (P.tiers || []).find(t => t.id === id) || { yearly: {}, monthly: null, second_system: {}, repair_discount_pct: 0 };
+  const k = T('keeper'), z = (o, w) => (o && o[w]) || 0, sc = (P.safety_check || {}).price || {}, dg = ((P.non_member || {}).diagnostic || {}).price || {};
+  const jc = ((P.join_credit || {}).price || {}).metro || {};
+  return {
+    club: P.brand || "Bee's Keeper Plan",
+    tiers: (P.tiers || []).map(t => t.name),
+    /* the Keeper tier (the one with monthly billing) for the texts */
+    keeper: { y: z(k.yearly, 'metro'), m: z(k.monthly, 'metro'), y2: z(k.yearly, 'zone2'), m2: z(k.monthly, 'zone2'), extraY: (k.second_system || {}).yearly || 0, extraM: (k.second_system || {}).monthly || 0 },
+    memberOff: k.repair_discount_pct || 0,
+    /* in town (Zone 1) / out of town (Zone 2). $79 is only the Keeper join offer, in town only. */
+    safety: sc.metro || 99, safety2: sc.zone2 || 129, safetyName: 'Furnace Safety Check', diag: dg.metro || 129, diag2: dg.zone2 || 169, joinHook: jc.join_offer || 0,
+    cancelText: (P.cancellation || {}).text_number || '', refund: P.refund || '', launch: P.launch_date || '',
+    /* v2.7: no footer line and no $1,000 warnings. Big jobs get the partner line per option (quote.js partnerOf) */
+    cap: 0,
+    disclosure: '',
+    P
+  };
+})();
+window.BEES.plans = window.BEES.tiers.slice();
 var BEES = window.BEES;
-/* the HVAC pack (packs.js) loads first: give its member plan field these prices */
+/* the HVAC pack (packs.js) loads first: give its member plan field the tier names */
 try { const hp = window.MT && MT.allPacks && MT.allPacks().find(p => p.id === 'hvac'); const pf = hp && hp.fields.find(f => f.id === 'hv_plan'); if (pf) pf.options = BEES.plans.slice(); } catch (e) {}
 /* Knockout Forms app config.
    Business branding and the list of forms live here, so a new form is one more entry
@@ -244,7 +257,7 @@ window.APP_CONFIG = {
       blurb: 'The ' + BEES.safetyName + ' or a tune-up. Rate every part, log the readings.',
       sections: [
         { title: 'The visit', fields: [
-          { id: 'visit', label: 'Visit', type: 'choice', options: [BEES.safetyName + ' ($' + BEES.safety + ' in town, $' + BEES.safety2 + ' out of town)', 'No-heat diagnostic ($' + BEES.diag + ' in town, $' + BEES.diag2 + ' out of town, credited with a same-day repair)', BEES.club + ' tune-up ($0)', 'Tune-up'] }
+          { id: 'visit', label: 'Visit', type: 'choice', options: [BEES.safetyName + ' ($' + BEES.safety + ' in town, $' + BEES.safety2 + ' out of town)', 'No-heat diagnostic ($' + BEES.diag + ' in town, $' + BEES.diag2 + ' out of town, credited with a same-day repair)', BEES.club + ' visit ($0)', 'Tune-up'] }
         ]},
         { title: 'The system', fields: [
           { id: 'sys_type', label: 'System', type: 'choice', options: ['AC and furnace', 'Heat pump', 'Package unit', 'Mini split'] },
@@ -287,7 +300,7 @@ window.APP_CONFIG = {
         { title: 'Every repair includes', fields: [
           { id: 'included', type: 'static', items: [
             'No-heat diagnostic $' + BEES.diag + ' in town, $' + BEES.diag2 + ' out of town, credited in full when you OK the repair today', 'Test the whole system after the fix',
-            'Before and after photos', BEES.club + ' members: $0 diagnostic and ' + BEES.memberOff + '% off'] }
+            'Before and after photos', BEES.club + ' members: $0 diagnostic and ' + BEES.memberOff + '% off or more'] }
         ]},
         { title: 'Your pick', fields: [
           { id: 'picked', label: 'Option picked', type: 'choice', options: ['Good', 'Better', 'Best', 'Not yet'] },
@@ -297,27 +310,35 @@ window.APP_CONFIG = {
     },
 
     {
-      /* the membership. Matches /workspace/bees-club (one tier, monthly or yearly). Name: BEES.club */
+      /* v2.7.1 the membership: Bee's Keeper Plan Agreement (Drain Care, Keeper, Keeper Plus). Prices come from the presets
+         (BEES.P, src/plans.json). From a lead, Offer Keeper Plan fills the tier, zone, billing and price for you. */
       id: 'hvac-plan', pack: 'hvac', icon: 'plan',
-      title: BEES.club + ' Membership', short: BEES.club,
-      blurb: '$' + BEES.monthly + ' a month or $' + BEES.yearly + ' a year. 2 tune-ups, $0 diagnostic, ' + BEES.memberOff + '% off repairs.',
+      title: BEES.club + ' Agreement', short: BEES.club,
+      blurb: (function () { const k = BEES.keeper; return 'Drain Care, Keeper ($' + k.y + ' a year or $' + k.m + ' a month in town) or Keeper Plus. Out of town prices are set by zone.'; })(),
       sections: [
         { title: 'Your plan', fields: [
-          { id: 'club_plan', label: 'Plan', type: 'choice', options: BEES.plans },
+          { id: 'kp_tier', label: 'Plan', type: 'choice', options: (BEES.P.tiers || []).map(t => t.name) },
+          { id: 'kp_zone', label: 'Where', type: 'choice', options: ['In town', 'Out of town'] },
+          { id: 'kp_billing', label: 'Billing', type: 'choice', options: ['Yearly', 'Monthly (Keeper only)'] },
           { id: 'sys_count', label: 'Systems covered', type: 'number', half: true },
           { id: 'renew', label: 'Renews on', type: 'date', half: true },
-          { id: 'extra_note', type: 'note', text: 'One system per membership. Each extra system: +$' + BEES.extraMonthly + ' a month or +$' + BEES.extraYearly + ' a year.' }
+          { id: 'kp_check', label: 'Check paid at this visit', type: 'choice', options: ['No check today', '$' + BEES.joinHook + ' join offer (in town only)', '$' + BEES.safety + ' heater check (in town)', '$' + BEES.safety2 + ' heater check (out of town)'] },
+          { id: 'kp_price', label: 'Plan price', type: 'text', placeholder: 'filled from the plan prices' },
+          { id: 'kp_due', label: 'Due today', type: 'text', placeholder: 'year one after the check credit' },
+          { id: 'price_note', type: 'note', text: (BEES.P.tiers || []).map(t => t.name + ': $' + t.yearly.metro + ' a year' + (t.monthly ? ' or $' + t.monthly.metro + ' a month' : '') + ' in town, $' + t.yearly.zone2 + (t.monthly ? ' or $' + t.monthly.zone2 + ' a month' : '') + ' out of town. Second system +$' + t.second_system.yearly + ' a year' + (t.second_system.monthly ? ' or +$' + t.second_system.monthly + ' a month' : '') + '.').join(' ') +
+            ' Whatever you paid for a heater check today counts toward year one when you join at the visit.' }
         ]},
         { title: 'What members get', fields: [
           { id: 'included', type: 'static', items: [
-            '2 tune-ups a year: spring AC check and fall ' + BEES.safetyName,
-            '$0 no-heat or no-cool diagnostic (normally $' + BEES.diag + ' to $' + BEES.diag2 + ')',
-            BEES.memberOff + '% off repairs',
+            'Drain Care: one drain visit a year (flush and clear the condensate trap and line)',
+            'Keeper: 2 tune-ups a year, the fall ' + BEES.safetyName + ' and a spring AC check with a drain flush',
+            'Keeper and Keeper Plus: $0 no-heat or no-cool diagnostic Mon to Sat 9am to 9pm (normally $' + BEES.diag + ' to $' + BEES.diag2 + ')',
+            'Keeper: ' + BEES.memberOff + '% off repairs. Keeper Plus: ' + ((BEES.P.tiers || []).find(t => t.id === 'keeper_plus') || {}).repair_discount_pct + '% off, a summer drain flush and 1-inch filters at every visit',
             'Priority scheduling: front of the line when there is an opening',
             'Filter reminder texts if you say yes below', 'Before and after photos every visit'] }
         ]},
         { title: 'Not included', fields: [
-          { id: 'not_incl', type: 'note', text: 'Parts, refrigerant, filters, new equipment, or anything that needs a permit. Monthly plan: the first included tune-up opens after 3 payments. Cancel anytime.' }
+          { id: 'not_incl', type: 'note', text: 'Parts, refrigerant, new equipment, or anything that needs a permit. Monthly Keeper: the discount and $0 diagnostic start right away, and the first included visit opens after 3 payments. ' + (BEES.refund ? BEES.refund.charAt(0).toUpperCase() + BEES.refund.slice(1) + '. ' : '') + (BEES.cancelText ? 'Cancel anytime by text to ' + BEES.cancelText + '.' : 'Cancel anytime.') }
         ]},
         { title: 'How you pay', fields: [
           { id: 'pay_method', label: 'Payment', type: 'choice', options: ['Square link (auto-renew)', 'Paid today, no auto-renew'] },
