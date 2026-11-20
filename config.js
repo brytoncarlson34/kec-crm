@@ -1,11 +1,13 @@
-/* Bee's Service and AC: live offers, the membership and the no-license cap. ONE place to change them.
+/* Bee's Service and AC: live offers and the membership. ONE place to change them.
    The club name is not decided yet: rename it here only (club). Used by the HVAC forms, texts and PDFs. */
 window.BEES = {
   club: 'Comfort Club',
   monthly: 15, yearly: 149, extraMonthly: 8, extraYearly: 79, memberOff: 15,
-  safety: 79, safetyName: 'Furnace Safety Check', diag: 89,
-  cap: 1000,
-  disclosure: 'Not a licensed contractor. Service and repair jobs under $1,000.'
+  /* v2.7 (approved 2026-11-19): in town (Zone 1) / out of town (Zone 2). $79 is only the Keeper Plan join price (v2.7.1). */
+  safety: 99, safety2: 129, safetyName: 'Furnace Safety Check', diag: 129, diag2: 169,
+  /* v2.7: no footer line and no $1,000 warnings. Big jobs get the partner line per option (quote.js partnerOf) */
+  cap: 0,
+  disclosure: ''
 };
 window.BEES.plans = ['Monthly $' + window.BEES.monthly, 'Yearly $' + window.BEES.yearly];
 var BEES = window.BEES;
@@ -242,7 +244,7 @@ window.APP_CONFIG = {
       blurb: 'The ' + BEES.safetyName + ' or a tune-up. Rate every part, log the readings.',
       sections: [
         { title: 'The visit', fields: [
-          { id: 'visit', label: 'Visit', type: 'choice', options: [BEES.safetyName + ' ($' + BEES.safety + ')', 'No-heat diagnostic ($' + BEES.diag + ', waived with a same-day repair)', BEES.club + ' tune-up ($0)', 'Tune-up'] }
+          { id: 'visit', label: 'Visit', type: 'choice', options: [BEES.safetyName + ' ($' + BEES.safety + ' in town, $' + BEES.safety2 + ' out of town)', 'No-heat diagnostic ($' + BEES.diag + ' in town, $' + BEES.diag2 + ' out of town, credited with a same-day repair)', BEES.club + ' tune-up ($0)', 'Tune-up'] }
         ]},
         { title: 'The system', fields: [
           { id: 'sys_type', label: 'System', type: 'choice', options: ['AC and furnace', 'Heat pump', 'Package unit', 'Mini split'] },
@@ -270,9 +272,9 @@ window.APP_CONFIG = {
 
     {
       /* id kept as hvac-quote so saved drafts and wording changes carry over */
-      id: 'hvac-quote', pack: 'hvac', icon: 'fan', cap: BEES.cap,
+      id: 'hvac-quote', pack: 'hvac', icon: 'fan',
       title: 'Repair Quote', short: 'Repair quote',
-      blurb: 'Service and repair under $' + BEES.cap.toLocaleString('en-US') + '. Give options. They sign to OK one.',
+      blurb: 'Service and repair. Give options. They sign to OK one.',
       sections: [
         { title: 'What we found', fields: [
           { id: 'old_sys', label: 'System', type: 'text', placeholder: 'like Carrier gas furnace, about 12 years' },
@@ -284,11 +286,8 @@ window.APP_CONFIG = {
         ]},
         { title: 'Every repair includes', fields: [
           { id: 'included', type: 'static', items: [
-            'No-heat diagnostic $' + BEES.diag + ', waived when you OK the repair today', 'Test the whole system after the fix',
+            'No-heat diagnostic $' + BEES.diag + ' in town, $' + BEES.diag2 + ' out of town, credited in full when you OK the repair today', 'Test the whole system after the fix',
             'Before and after photos', BEES.club + ' members: $0 diagnostic and ' + BEES.memberOff + '% off'] }
-        ]},
-        { title: 'Good to know', fields: [
-          { id: 'cap_note', type: 'note', text: 'Service and repair only, under $' + BEES.cap.toLocaleString('en-US') + ' total. If it needs a new system or runs $' + BEES.cap.toLocaleString('en-US') + ' or more, we refer you to a licensed installer.' }
         ]},
         { title: 'Your pick', fields: [
           { id: 'picked', label: 'Option picked', type: 'choice', options: ['Good', 'Better', 'Best', 'Not yet'] },
@@ -312,13 +311,13 @@ window.APP_CONFIG = {
         { title: 'What members get', fields: [
           { id: 'included', type: 'static', items: [
             '2 tune-ups a year: spring AC check and fall ' + BEES.safetyName,
-            '$0 no-heat or no-cool diagnostic (normally $' + BEES.diag + ')',
-            BEES.memberOff + '% off repairs (repair must be under $' + BEES.cap.toLocaleString('en-US') + ' before the discount)',
+            '$0 no-heat or no-cool diagnostic (normally $' + BEES.diag + ' to $' + BEES.diag2 + ')',
+            BEES.memberOff + '% off repairs',
             'Priority scheduling: front of the line when there is an opening',
             'Filter reminder texts if you say yes below', 'Before and after photos every visit'] }
         ]},
         { title: 'Not included', fields: [
-          { id: 'not_incl', type: 'note', text: 'Parts, refrigerant, filters, new equipment, anything $' + BEES.cap.toLocaleString('en-US') + ' or more, or anything that needs a permit. Monthly plan: the first included tune-up opens after 3 payments. Cancel anytime.' }
+          { id: 'not_incl', type: 'note', text: 'Parts, refrigerant, filters, new equipment, or anything that needs a permit. Monthly plan: the first included tune-up opens after 3 payments. Cancel anytime.' }
         ]},
         { title: 'How you pay', fields: [
           { id: 'pay_method', label: 'Payment', type: 'choice', options: ['Square link (auto-renew)', 'Paid today, no auto-renew'] },
@@ -352,4 +351,4 @@ window.APP_CONFIG = {
 };
 
 /* Tutorials fallback (the app reads tutorials.json first). Built from src/tutorials.json. */
-window.APP_CONFIG.tutorials = [{"id": "full", "group": "start", "full": true, "title": "Full walkthrough", "desc": "Everything in one video, from setup to a signed job.", "length": "12 min", "url": ""}, {"id": "install", "group": "start", "title": "Put the app on your Home Screen", "desc": "Add it to your iPhone so it opens like an app.", "length": "1 min", "url": ""}, {"id": "setup", "group": "start", "title": "Pick your trades and business", "desc": "Turn on solar, plumbing, HVAC or a mix and name each business.", "length": "2 min", "url": ""}, {"id": "backup", "group": "start", "title": "Back up your data", "desc": "Keep a copy of your leads in a Google Sheet.", "length": "2 min", "url": ""}, {"id": "look", "group": "start", "title": "Make it yours", "desc": "Your logo, colors and profile for each business.", "length": "2 min", "url": ""}, {"id": "ec", "group": "solar", "trade": "solar", "title": "Run an Energy Check", "desc": "Walk a homeowner through the check and save the lead.", "length": "3 min", "url": ""}, {"id": "solar-share", "group": "solar", "trade": "solar", "title": "Share your Energy Check link", "desc": "Send your own link so homeowners can fill it out.", "length": "1 min", "url": ""}, {"id": "solar-sheet", "group": "solar", "trade": "solar", "title": "Use your own Google Sheet", "desc": "Hook up your own Sheet, step by step.", "length": "4 min", "url": ""}, {"id": "pl-forms", "group": "plumbing", "trade": "plumbing", "title": "Fill and sign a form", "desc": "Service agreements and work orders, signed on the phone.", "length": "3 min", "url": ""}, {"id": "pl-estimate", "group": "plumbing", "trade": "plumbing", "title": "Send an estimate or invoice", "desc": "Build one, get it signed, and send the PDF.", "length": "3 min", "url": ""}, {"id": "pl-team", "group": "plumbing", "trade": "plumbing", "title": "Add your techs", "desc": "Send a setup link so a tech's phone joins your shop.", "length": "2 min", "url": ""}, {"id": "leads", "group": "everyday", "title": "Add and work a lead", "desc": "Add a lead in seconds, text them and set the next step.", "length": "2 min", "url": ""}, {"id": "pipeline", "group": "everyday", "title": "Use the pipeline", "desc": "Move leads along and see what needs you today.", "length": "2 min", "url": ""}, {"id": "calendar", "group": "everyday", "title": "Calendar and jobs", "desc": "Book installs, repairs and visits, and link your calendars.", "length": "3 min", "url": ""}, {"id": "tabs", "group": "everyday", "title": "Switch between trades", "desc": "The All and trade tabs and what each shows when more than one trade is on.", "length": "1 min", "url": ""}, {"id": "hvac-tuneup", "group": "hvac", "trade": "hvac", "title": "Do a safety check or tune-up", "desc": "The $79 Furnace Safety Check or a tune-up: check the system, log the readings and send the report with photos.", "length": "2 min", "url": ""}, {"id": "hvac-quote", "group": "hvac", "trade": "hvac", "title": "Quote a repair", "desc": "Repair options under $1,000, the pick and the deposit on one page. Over $1,000, refer it out.", "length": "3 min", "url": ""}, {"id": "hvac-plan", "group": "hvac", "trade": "hvac", "title": "Sign up a member", "desc": "Monthly or yearly membership, picked and signed on the spot.", "length": "1 min", "url": ""}, {"id": "acct-make", "group": "account", "title": "Make an account", "desc": "Keep your leads safe and use the app on more than one phone.", "length": "1 min", "url": ""}, {"id": "acct-phone", "group": "account", "title": "Sign in on a new phone", "desc": "Your business and leads show up after you sign in.", "length": "1 min", "url": ""}, {"id": "acct-team", "group": "account", "title": "Invite a teammate", "desc": "Send a code so a rep works the same leads.", "length": "1 min", "url": ""}];
+window.APP_CONFIG.tutorials = [{"id": "full", "group": "start", "full": true, "title": "Full walkthrough", "desc": "Everything in one video, from setup to a signed job.", "length": "12 min", "url": ""}, {"id": "install", "group": "start", "title": "Put the app on your Home Screen", "desc": "Add it to your iPhone so it opens like an app.", "length": "1 min", "url": ""}, {"id": "setup", "group": "start", "title": "Pick your trades and business", "desc": "Turn on solar, plumbing, HVAC or a mix and name each business.", "length": "2 min", "url": ""}, {"id": "backup", "group": "start", "title": "Back up your data", "desc": "Keep a copy of your leads in a Google Sheet.", "length": "2 min", "url": ""}, {"id": "look", "group": "start", "title": "Make it yours", "desc": "Your logo, colors and profile for each business.", "length": "2 min", "url": ""}, {"id": "ec", "group": "solar", "trade": "solar", "title": "Run an Energy Check", "desc": "Walk a homeowner through the check and save the lead.", "length": "3 min", "url": ""}, {"id": "solar-share", "group": "solar", "trade": "solar", "title": "Share your Energy Check link", "desc": "Send your own link so homeowners can fill it out.", "length": "1 min", "url": ""}, {"id": "solar-sheet", "group": "solar", "trade": "solar", "title": "Use your own Google Sheet", "desc": "Hook up your own Sheet, step by step.", "length": "4 min", "url": ""}, {"id": "pl-forms", "group": "plumbing", "trade": "plumbing", "title": "Fill and sign a form", "desc": "Service agreements and work orders, signed on the phone.", "length": "3 min", "url": ""}, {"id": "pl-estimate", "group": "plumbing", "trade": "plumbing", "title": "Send an estimate or invoice", "desc": "Build one, get it signed, and send the PDF.", "length": "3 min", "url": ""}, {"id": "pl-team", "group": "plumbing", "trade": "plumbing", "title": "Add your techs", "desc": "Send a setup link so a tech's phone joins your shop.", "length": "2 min", "url": ""}, {"id": "leads", "group": "everyday", "title": "Add and work a lead", "desc": "Add a lead in seconds, text them and set the next step.", "length": "2 min", "url": ""}, {"id": "pipeline", "group": "everyday", "title": "Use the pipeline", "desc": "Move leads along and see what needs you today.", "length": "2 min", "url": ""}, {"id": "calendar", "group": "everyday", "title": "Calendar and jobs", "desc": "Book installs, repairs and visits, and link your calendars.", "length": "3 min", "url": ""}, {"id": "tabs", "group": "everyday", "title": "Switch between trades", "desc": "The All and trade tabs and what each shows when more than one trade is on.", "length": "1 min", "url": ""}, {"id": "hvac-tuneup", "group": "hvac", "trade": "hvac", "title": "Do a safety check or tune-up", "desc": "The Furnace Safety Check ($99 in town, $129 out of town) or a tune-up: check the system, log the readings and send the report with photos.", "length": "2 min", "url": ""}, {"id": "hvac-quote", "group": "hvac", "trade": "hvac", "title": "Quote a repair", "desc": "Repair options under $1,000, the pick and the deposit on one page. Over $1,000, refer it out.", "length": "3 min", "url": ""}, {"id": "hvac-plan", "group": "hvac", "trade": "hvac", "title": "Sign up a member", "desc": "Monthly or yearly membership, picked and signed on the spot.", "length": "1 min", "url": ""}, {"id": "acct-make", "group": "account", "title": "Make an account", "desc": "Keep your leads safe and use the app on more than one phone.", "length": "1 min", "url": ""}, {"id": "acct-phone", "group": "account", "title": "Sign in on a new phone", "desc": "Your business and leads show up after you sign in.", "length": "1 min", "url": ""}, {"id": "acct-team", "group": "account", "title": "Invite a teammate", "desc": "Send a code so a rep works the same leads.", "length": "1 min", "url": ""}];

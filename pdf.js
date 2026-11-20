@@ -52,6 +52,8 @@
     /* photos keep their shape: fit inside the box, centered */
     const fitImg = (p, x, y, w, h) => { try { const pr = doc.getImageProperties(p), r = Math.min(w / pr.width, h / pr.height), iw = pr.width * r, ih = pr.height * r; doc.addImage(p, imgFmt(p), x + (w - iw) / 2, y + (h - ih) / 2, iw, ih, undefined, 'FAST'); } catch (e) { try { doc.addImage(p, imgFmt(p), x, y, w, h, undefined, 'FAST'); } catch (x2) {} } };
     const P = rgb(brand.colors.primary), A = rgb(brand.colors.accent), B = rgb(brand.colors.bg);
+    /* v2.7 partner line: only next to an option or total over the shop's line (Bee's: New Era, over $1,000) */
+    const partnerTxt = amt => { const Pt = brand.partner; try { return Pt && window.QB ? clean(QB.partnerLine(Pt, amt)) : ''; } catch (e) { return ''; } };
     const GRAY = [110, 104, 96], LINE = [200, 192, 182], INK = [29, 29, 31];
     let y = 0;
     const set = (c, f) => { f ? doc.setFillColor(...c) : doc.setTextColor(...c); };
@@ -206,6 +208,8 @@
             font('bold', 13); set(P); doc.text(moneyStr(o.price), W - M - 12, y + 16, { align: 'right' });
             font('normal', 10.5); set(INK); doc.text(ls, M + 14, y + 30);
             y += h + 8;
+            /* the balance they owe on this option after any credit on the form, this option only */
+            const pl = partnerTxt(Math.max(0, num(o.price) - num(vals.credit || vals.diag_credit || 0))); if (pl) { ensure(16); font('bold', 9.5); set([29, 77, 43]); doc.text(pl, M + 14, y - 1); y += 14; }
           });
           break;
         }
@@ -297,7 +301,7 @@
     for (let p = 1; p <= pages; p++) {
       doc.setPage(p);
       doc.setDrawColor(...P); doc.setLineWidth(1); doc.line(M, H - 44, W - M, H - 44);
-      const disc = clean(brand.disclosure || '');  /* HVAC (Bee's): Not a licensed contractor line on every page */
+      const disc = clean(brand.disclosure || '');  /* empty since v2.7 (no footer line) */
       font('bold', 9); set(A); doc.text(clean(brand.thanks || ('Thanks for choosing ' + brand.name + '.')), W / 2, H - (disc ? 32 : 30), { align: 'center' });
       if (disc) { font('bold', 8); set(INK); doc.text(disc, W / 2, H - 21, { align: 'center' }); }
       font('normal', 7.5); set(GRAY); doc.text('Form ' + clean(vals._id || '') + '   |   Page ' + p + ' of ' + pages, W / 2, H - (disc ? 11 : 18), { align: 'center' });
