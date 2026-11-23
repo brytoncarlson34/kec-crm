@@ -117,7 +117,7 @@ window.APP_CONFIG = {
         ]},
         { title: 'Payment', fields: [
           { id: 'pay_status', label: 'Status', type: 'choice', options: ['Paid today', 'Due'] },
-          { id: 'pay_method', label: 'Paid by', type: 'choice', options: ['Cash', 'Check', 'Card', 'Other'] },
+          { id: 'pay_method', label: 'Paid by', type: 'choice', options: ['Cash', 'Check', 'Card', 'Other'], byPack: { hvac: ['Cash', 'Card', 'Other'] } },   /* v2.7.3: Bee's takes no checks */
           { id: 'due_date', label: 'Due by', type: 'date', half: true }
         ]}
       ]
@@ -165,7 +165,7 @@ window.APP_CONFIG = {
     },
 
     {
-      id: 'warranty', pack: 'plumbing', packs: ['plumbing', 'solar', 'hvac'], icon: 'shield',
+      id: 'warranty', pack: 'plumbing', packs: ['plumbing', 'solar'], icon: 'shield',
       title: 'Warranty Card', short: 'Warranty',
       blurb: "What's covered and for how long.",
       sections: [
