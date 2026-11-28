@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>A booking page and a phone CRM for your shop | $497 setup, $97 a month</title>
+<meta name="description" content="The booking page and phone CRM used at Bee's Service and AC in Bakersfield, set up for other local trades. $497 to set up, $97 a month. 30-day money-back guarantee.">
+<meta name="theme-color" content="#14213D">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%94%A7%3C/text%3E%3C/svg%3E">
+<style>
+*{box-sizing:border-box}
+:root{--navy:#14213D;--blue:#1F6FD1;--ink:#17202e;--mut:#59647a;--bg:#f4f6fb;--ok:#0a7d38;--gold:#FFD28A}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{margin:0;font:17px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink);background:var(--bg);padding-bottom:84px}
+a{color:var(--blue)}
+.wrap{max-width:720px;margin:0 auto;padding:0 18px}
+header.top{background:var(--navy);color:#fff;padding:26px 0 28px}
+.kick{font-weight:700;color:var(--gold);font-size:14px;letter-spacing:.4px;text-transform:uppercase;margin:0 0 8px}
+h1{font-size:31px;line-height:1.15;margin:0 0 12px}
+.sub{margin:0 0 18px;opacity:.95;font-size:18px}
+.btns{display:grid;gap:10px}
+.btn{display:flex;align-items:center;justify-content:center;min-height:56px;border-radius:14px;font-weight:800;font-size:18px;text-decoration:none;text-align:center;padding:0 16px}
+.btn.pri{background:var(--gold);color:var(--navy)}
+.btn.sec{background:rgba(255,255,255,.12);color:#fff;border:2px solid rgba(255,255,255,.55)}
+.btn.blue{background:var(--blue);color:#fff}
+.fine{font-size:14px;color:var(--mut)}
+header .fine{color:#c9d3ea;margin:12px 0 0;text-align:center}
+section{padding:30px 0 6px}
+h2{font-size:25px;line-height:1.2;margin:0 0 14px}
+.card{background:#fff;border-radius:16px;padding:16px 16px 14px;box-shadow:0 1px 3px rgba(0,0,0,.08);margin:0 0 12px}
+.card h3{margin:0 0 4px;font-size:18px}
+.card p{margin:0;color:#2b3547}
+.grid{display:grid;gap:12px}
+.gal{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 18px 14px;margin:0 -18px;-webkit-overflow-scrolling:touch}
+.gal figure{margin:0;flex:0 0 232px;scroll-snap-align:center;background:#fff;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,.12);overflow:hidden}
+.gal img{display:block;width:100%;height:auto;border-bottom:1px solid #e3e8f2}
+.gal figcaption{padding:10px 12px 12px;font-size:14px;color:#2b3547}
+.gal figcaption b{display:block;font-size:15px;color:var(--navy);margin-bottom:2px}
+.stat{background:#fff;border-left:5px solid var(--blue);border-radius:12px;padding:14px 16px}
+.stat b{font-size:19px}
+.price{background:var(--navy);color:#fff;border-radius:18px;padding:22px 18px;text-align:center}
+.price .big{font-size:44px;font-weight:900;line-height:1.05}
+.price .big small{font-size:18px;font-weight:700;opacity:.9}
+.price ul{text-align:left;margin:16px auto 0;padding-left:20px;max-width:420px}
+.price li{margin:5px 0}
+.guar{background:#e9f7ee;border:2px solid #b8e3c8;border-radius:16px;padding:16px}
+.guar h2{margin-bottom:8px}
+.guar ul{margin:8px 0 0;padding-left:20px}
+.steps{counter-reset:s;list-style:none;padding:0;margin:0}
+.steps li{counter-increment:s;background:#fff;border-radius:14px;padding:14px 14px 14px 52px;margin:0 0 10px;position:relative;box-shadow:0 1px 3px rgba(0,0,0,.07)}
+.steps li:before{content:counter(s);position:absolute;left:14px;top:12px;width:28px;height:28px;border-radius:50%;background:var(--blue);color:#fff;font-weight:800;text-align:center;line-height:28px}
+details{background:#fff;border-radius:12px;padding:12px 14px;margin:0 0 8px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+summary{font-weight:700;cursor:pointer}
+details p{margin:8px 0 0;color:#2b3547}
+footer{padding:26px 0 20px;text-align:center;color:var(--mut);font-size:14px}
+.sticky{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #dfe5f1;padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));z-index:5}
+.sticky .btn{max-width:720px;margin:0 auto;min-height:52px}
+.vid-wrap{max-width:360px;margin:0 auto 14px;border-radius:18px;overflow:hidden;box-shadow:0 8px 28px rgba(20,33,61,.28);background:#000;aspect-ratio:390/844}
+.vid-wrap video{width:100%;height:100%;object-fit:cover;display:block;vertical-align:middle}
+.card ul{margin:8px 0 0;padding-left:20px}
+.card li{margin:4px 0}
+@media(min-width:760px){.btns{grid-template-columns:1fr 1fr}.btns.three{grid-template-columns:1fr 1fr 1fr}.grid.two{grid-template-columns:1fr 1fr}.gal{padding-left:0;margin:0}h1{font-size:38px}}
+</style>
+</head>
+<body>
+
+<!-- BUZZ: hero. Wording from Buzz's one-page sales sheet, Nov 28. -->
+<header class="top">
+  <div class="wrap">
+    <p class="kick">For local trades in Kern County</p>
+    <h1>A booking page and a phone CRM for your shop</h1>
+    <p class="sub">This is the system I use at Bee's Service and AC in Bakersfield. I'm setting the same thing up for other local trades in Kern County.</p>
+    <div class="btns three">
+      <a class="btn pri" href="#demo" data-ev="video_top">Watch the 2-minute demo</a>
+      <a class="btn sec" href="demo/book/" data-ev="demo_top">Try it yourself</a>
+      <a class="btn sec" href="sms:+16617473899?&body=Hi%2C%20I%20saw%20the%20CRM%20and%20booking%20page%20offer%20for%20local%20trades.%20I%27d%20like%20to%20know%20more.%20My%20trade%20is%20" data-ev="text_top">Text Bryton: 661-747-3899</a>
+    </div>
+    <p class="fine">The live demo is a fake shop, Sample Heating and Air. Towns, prices and phone numbers are examples. Nothing you tap there is saved.</p>
+  </div>
+</header>
+
+<main class="wrap">
+
+<section id="demo">
+  <h2>Watch the 2-minute demo</h2>
+  <div class="vid-wrap">
+    <video controls playsinline preload="metadata" poster="img/walkthrough.webp" width="390" height="844">
+      <source src="demo-walkthrough.mp4" type="video/mp4">
+    </video>
+  </div>
+  <p class="fine" style="text-align:center">A sample booking, the text that would go to the shop, then the lead in the CRM. <a href="demo-walkthrough.mp4">Download the video</a>.</p>
+  <div class="btns" style="margin-top:10px">
+    <a class="btn blue" href="demo/book/" data-ev="demo_mid">Try it yourself, starting with the booking page</a>
+    <a class="btn blue" href="demo/" style="background:#fff;color:var(--blue);border:2px solid var(--blue)" data-ev="crm_mid">Or open the demo CRM</a>
+  </div>
+</section>
+
+<!-- BUZZ: the problem. -->
+<section id="why">
+  <h2>The problem</h2>
+  <div class="card"><p>A customer texts you while you're on a job. The name sits in a thread. The follow-up slips. The work order is on a pad in the truck. By the time you get back to it, they already called someone else.</p></div>
+</section>
+
+<!-- BUZZ: what you get. Booking page, then the CRM, from Buzz's sales sheet. -->
+<section id="get">
+  <h2>The booking page</h2>
+  <div class="card">
+    <p>You get a simple page in your name, with your prices, your towns, and your phone number.</p>
+    <ul>
+      <li>They see the price first, when you have a set price.</li>
+      <li>They pick a town, a service, and a day that works.</li>
+      <li>It opens a text to you with their name, town, service, price, and preferred day already filled in.</li>
+      <li>They hit send in their own Messages app. You can also put a call button on the page.</li>
+    </ul>
+    <p style="margin-top:10px">You can put the link in your bio, on a flyer, or in a post. Here is the one I use: <a href="https://brytoncarlson34.github.io/kec-crm/bees/">Bee's Service and AC booking page</a>.</p>
+  </div>
+
+  <h2 style="margin-top:28px">The CRM, on your phone</h2>
+  <div class="card">
+    <p>Add it to your iPhone or Android Home Screen. No app store.</p>
+    <ul>
+      <li>A Today screen: who to call, who's late, what's next.</li>
+      <li>Leads, follow-ups, and a pipeline you can see as a board or a calendar.</li>
+      <li>Ready texts: tap one, it opens in your own Messages app with the words filled in. You read it and hit send. Nothing goes out on its own. Campaign texts include Reply STOP to opt out.</li>
+      <li>Forms: service agreements, work orders, estimates, and invoices. The customer signs with a finger. You get a PDF you can text or email.</li>
+      <li>It works with no signal. Leads live on the phone first. Forms wait and go out when you're back in range.</li>
+      <li>Your data stays yours. Back it up to a Google Sheet in your name. Export to CSV anytime.</li>
+      <li>Your look: business name, logo, colors, and phone. You can send a setup link so a tech's phone matches the shop.</li>
+    </ul>
+    <p style="margin-top:10px">Solar shops can use the Energy Check and a plain read of a utility bill. HVAC shops can use repair quotes and membership tools. Electrical and other trades use the same core: leads, pipeline, estimates, and job forms.</p>
+  </div>
+</section>
+
+<section id="shots">
+  <h2>What it looks like</h2>
+  <div class="gal" aria-label="Screenshots, swipe to see more"><figure><img src="img/01-today.webp" width="585" height="1266" alt="Today screen with a new lead, follow-ups and the week so far" decoding="async"><figcaption><b>Today</b>Your day on one screen: who to call, who is late, what is due.</figcaption></figure><figure><img src="img/02-speed.webp" width="585" height="1266" alt="Not contacted yet list with a red waiting clock" decoding="async"><figcaption><b>Speed to lead</b>New leads you have not answered yet, with a clock that turns red after 5 minutes.</figcaption></figure><figure><img src="img/04-text-queue.webp" width="585" height="1266" alt="Text queue with a green Text button for each customer" decoding="async"><figcaption><b>One-tap text queue</b>Tap Text, Messages opens with their number and your words. Send, tick Sent, next.</figcaption></figure><figure><img src="img/03-money.webp" width="585" height="1266" alt="Money screen with collected this week against a goal, owed and open quotes" decoding="async"><figcaption><b>Money screen</b>Collected this week against your goal, what you are owed, open quotes.</figcaption></figure><figure><img src="img/06-quote.webp" width="585" height="1266" alt="A quote with options and a customer copy button" decoding="async"><figcaption><b>Quotes and forms</b>Quotes with options, forms with signatures, saved as PDFs.</figcaption></figure><figure><img src="img/07-booking-page.webp" width="585" height="1266" alt="Booking page where the price fills in from the customer town" decoding="async"><figcaption><b>Booking page</b>Customer picks a town, the price fills in, and a text to you is ready to send.</figcaption></figure></div>
+  <p class="fine">Screenshots show Sample Heating and Air, a fake shop. Towns, prices and numbers are examples.</p>
+</section>
+
+<!-- BUZZ: price block. $497 and $97 stay fixed. Extra-user and setup details from Buzz's locked terms. -->
+<section id="price">
+  <h2>Price</h2>
+  <div class="price">
+    <div class="big">$497 <small>to set up</small></div>
+    <div class="big" style="margin-top:6px">$97 <small>a month per shop</small></div>
+    <ul>
+      <li>Up to 3 phones. Extra users are $20 a month each.</li>
+      <li>The $497 setup includes a booking page in your name, with your prices, towns, and phone, the CRM on your phones, and your customer list imported.</li>
+      <li>You are live within 72 hours of payment.</li>
+      <li>Invoice, pay by Zelle or card. The $97 is invoiced monthly.</li>
+      <li>There is no free pilot.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="guarantee">
+  <div class="guar">
+    <h2>30-day money-back guarantee</h2>
+    <p style="margin:0">If the CRM isn't running within 30 days of handover, we refund the $497 setup. The $97 a month can be canceled anytime. The first month is not refunded.</p>
+  </div>
+</section>
+
+<!-- BUZZ: how we start. -->
+<section id="how">
+  <h2>How we start</h2>
+  <ol class="steps">
+    <li><b>Watch the 2-minute demo</b> above, then try it yourself on the sample booking page.</li>
+    <li><b>If you want it set up,</b> text Bryton at 661-747-3899.</li>
+    <li><b>If you want a live walkthrough</b> after you look, just ask.</li>
+  </ol>
+</section>
+
+<!-- BUZZ: what this is not. -->
+<section id="honest">
+  <h2>What this is not</h2>
+  <div class="card"><p>This is not a big-shop dispatch system. It does not take customer card payments in the app, plan routes, track GPS, run payroll, or sync to QuickBooks. It does not send texts for you. You stay in control of every message.</p></div>
+</section>
+
+<section id="faq">
+  <h2>Questions</h2>
+  <details><summary>Which trades is it for?</summary><p>Solar shops can use the Energy Check and a plain read of a utility bill. HVAC shops can use repair quotes and membership tools. Electrical and other trades use the same core: leads, pipeline, estimates, and job forms. Text us your trade and we will tell you how it fits.</p></details>
+  <details><summary>Do I need a computer?</summary><p>No. Add it to your iPhone or Android Home Screen. No app store.</p></details>
+  <details><summary>Who owns my customer list?</summary><p>You do. Your data stays yours. Back it up to a Google Sheet in your name. Export to CSV anytime.</p></details>
+  <details><summary>How do I pay?</summary><p>Invoice, pay by Zelle or card, for the $497 setup and for the $97 a month, which is invoiced monthly.</p></details>
+  <details><summary>How do I cancel?</summary><p>Text us. If the CRM isn't running within 30 days of handover, we refund the $497 setup. You can cancel the $97 a month anytime. The first month is not refunded.</p></details>
+  <details><summary>Who is behind this?</summary><p>Bryton Carlson, Bee's Service and AC in Bakersfield. This is the system he uses in his own shop.</p></details>
+</section>
+
+<!-- BUZZ: closing line and button text. -->
+<section id="start" style="text-align:center">
+  <h2>If you want it set up, text Bryton</h2>
+  <div class="btns" style="grid-template-columns:1fr">
+    <a class="btn blue" href="sms:+16617473899?&body=Hi%2C%20I%20saw%20the%20CRM%20and%20booking%20page%20offer%20for%20local%20trades.%20I%27d%20like%20to%20know%20more.%20My%20trade%20is%20" data-ev="text_bottom">Text Bryton: 661-747-3899</a>
+    <a class="btn blue" href="demo/book/" style="background:#fff;color:var(--blue);border:2px solid var(--blue)" data-ev="demo_bottom">Try it yourself first</a>
+  </div>
+  <p class="fine">If you want a live walkthrough after you look, just ask.</p>
+</section>
+</main>
+
+<footer><div class="wrap">Bryton Carlson · Bee's Service and AC, Bakersfield · 661-747-3899</div></footer>
+<div class="sticky"><a class="btn blue" href="sms:+16617473899?&body=Hi%2C%20I%20saw%20the%20CRM%20and%20booking%20page%20offer%20for%20local%20trades.%20I%27d%20like%20to%20know%20more.%20My%20trade%20is%20" data-ev="text_sticky">Text Bryton: 661-747-3899</a></div>
+</body>
+</html>
